@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  backend:
+    image: python:3.12-slim
+    container_name: learnpath_backend
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: bash -c "pip install --no-cache-dir -r backend/requirements.txt && uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+    env_file:
+      - .env
