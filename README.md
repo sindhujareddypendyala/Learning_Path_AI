@@ -1,245 +1,239 @@
-# 🚀 LearnPath AI
+# LearnPath AI
 
-> **One Prompt. Whole Learning.**
+**One Prompt. Whole Learning.**
 
-LearnPath AI is an AI-powered personalized learning platform that transforms a single learning prompt into a complete learning journey. Using multiple AI agents, it automatically generates structured courses, detailed lessons, quizzes, hands-on projects, interview preparation, and learning analytics tailored to each learner.
+LearnPath AI is a full-stack AI learning SaaS that turns a single learning goal into a structured, personalized learning path with modules, lessons, resources, quizzes, projects, interview preparation, and analytics.
 
----
+The product flow is intentionally complete: users land on a premium launch screen, authenticate, create a learning profile, see an honest empty dashboard, generate their first course, and continue into a learning dashboard.
 
-## 🌟 Overview
-
-Traditional learning platforms provide static content for every learner. LearnPath AI creates a **dynamic, personalized learning experience** based on the user's goals, current skill level, and learning preferences.
-
-Simply enter what you want to learn, and LearnPath AI builds a complete roadmap for you.
-
----
-
-## ✨ Features
-
-- 🎯 Personalized Learning Profiles
-- 🤖 Multi-Agent AI Architecture
-- 📚 AI Course Generator
-- 📝 Smart Lesson Generation
-- 🌐 Knowledge Enrichment
-- ✅ AI Quiz Generation
-- 💻 Hands-on Project Recommendations
-- 🎤 Interview Preparation
-- 📊 Learning Analytics Dashboard
-- 📱 Responsive Modern UI
-- 🔒 User Authentication
-
----
-
-## 🧠 AI Agents
-
-### 📖 Curriculum Agent
-Generates a structured learning roadmap.
-
-### ✍️ Content Agent
-Creates detailed lessons with explanations and examples.
-
-### 🌍 Knowledge Enrichment Agent
-Provides:
-- Latest Trends
-- Industry Use Cases
-- Documentation
-- GitHub Resources
-- Best Practices
-
-### 📝 Assessment Agent
-Generates quizzes with instant evaluation.
-
-### 💻 Projects Agent
-Creates practical mini and capstone projects.
-
-### 🎤 Interview Preparation Agent
-Generates technical and HR interview questions.
-
-### 📈 Learning Analytics Agent
-Tracks progress, strengths, weak areas, and learning recommendations.
-
----
-
-## 🏗️ Project Architecture
+## Product Flow
 
 ```text
-                User
-                  │
-                  ▼
-          React Frontend
-                  │
-                  ▼
-          FastAPI Backend
-                  │
-                  ▼
-        Agent Orchestrator
-                  │
-     ┌────────────┼────────────┐
-     ▼            ▼            ▼
- Curriculum   Content   Knowledge
-    Agent       Agent      Agent
-     │            │          │
-     ├────────────┼──────────┤
-                  ▼
-          Assessment Agent
-                  │
-                  ▼
-           Projects Agent
-                  │
-                  ▼
-      Interview Preparation
-                  │
-                  ▼
-      Learning Analytics
-                  │
-                  ▼
-            Final Response
+App Launch
+  -> Minimal Landing Screen
+  -> Begin Learning
+  -> Login / Sign Up
+  -> Authentication
+  -> First-Time Profile Creation
+  -> Home Dashboard
+  -> Generate Course
+  -> Learning Dashboard
 ```
 
----
+New users do not see fake metrics. Until a course is generated, the dashboard shows `0%` progress, `0` completed lessons, `0 Days` streak, `0` completed projects, and `Not Available` interview readiness.
 
-## 🖥️ Tech Stack
+## Features
 
-### Frontend
+- Premium React interface with glassmorphism, gradients, Framer Motion transitions, and responsive layouts.
+- Custom LearnPath AI branding across landing, auth, profile, dashboard, sidebar, loading states, and favicon-ready logo assets.
+- JWT authentication with protected profile and course APIs.
+- First-time profile setup for name, learning goal, role, skill level, study time, learning style, target date, and favorite technologies.
+- Structured course generation with modules, lessons, resources, quizzes, projects, interview questions, and analytics.
+- Relational persistence with SQLAlchemy models for courses, modules, lessons, resources, quizzes, questions, projects, interview prep, analytics, and progress.
+- Empty-state dashboard that unlocks analytics only after the first course exists.
+- API client with token injection and normalized course responses for the frontend.
 
-- React.js
+## Tech Stack
+
+**Frontend**
+
+- React
 - Vite
 - Tailwind CSS
 - Framer Motion
 - React Router
+- Axios
 - Lucide React
 - Recharts
 
-### Backend
+**Backend**
 
 - FastAPI
-- Python
-- Pydantic
 - SQLAlchemy
+- Pydantic
 - SQLite
+- JWT authentication
+- Passlib bcrypt password hashing
+- LangChain / Groq-ready service layer
+- ChromaDB dependency support
 
-### AI
-
-- Gemini API / OpenAI API
-- Prompt Engineering
-- Multi-Agent Architecture
-
----
-
-## 📂 Folder Structure
+## Project Structure
 
 ```text
-LearnPath-AI/
-
-├── frontend/
-├── backend/
-├── ai_agents/
-├── prompts/
-├── database/
-├── docs/
-├── deployment/
-├── assets/
-└── README.md
+LearnAI/
+  backend/
+    api/
+      routes/
+      v1/
+    config/
+    database/
+    models/
+    schemas/
+    services/
+    main.py
+    requirements.txt
+  src/
+    components/
+    lib/
+    services/
+    App.jsx
+    main.jsx
+    styles.css
+  testing/
+    api_tests/
+    backend_tests/
+  docs/
+  package.json
+  vite.config.js
+  README.md
 ```
 
----
+## Getting Started
 
-## 🚀 User Flow
+### 1. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+### 2. Create Backend Environment
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+On macOS/Linux, activate with:
+
+```bash
+source .venv/bin/activate
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the project root or backend environment with:
+
+```env
+SECRET_KEY=change-this-secret
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+DATABASE_URL=sqlite:///./learnpath.db
+GROQ_API_KEY=your-groq-api-key
+```
+
+The course service is schema-safe and can run without an external AI key. Add `GROQ_API_KEY` when connecting a live model-backed generation pipeline.
+
+### 4. Run Backend
+
+From the project root:
+
+```bash
+uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+FastAPI will be available at:
+
+- API: `http://127.0.0.1:8000`
+- Docs: `http://127.0.0.1:8000/docs`
+- Health: `http://127.0.0.1:8000/health`
+
+### 5. Run Frontend
+
+In another terminal from the project root:
+
+```bash
+npm run dev
+```
+
+Vite will start the app at:
 
 ```text
-Launch Application
-        │
-        ▼
-Landing Screen
-        │
-        ▼
-Begin Learning
-        │
-        ▼
-Login / Sign Up
-        │
-        ▼
-Create Learning Profile
-        │
-        ▼
-Home Dashboard
-        │
-        ▼
-Generate Course
-        │
-        ▼
-AI Agents Generate Content
-        │
-        ▼
-Lessons
-        │
-        ▼
-Quiz
-        │
-        ▼
-Projects
-        │
-        ▼
-Interview Preparation
-        │
-        ▼
-Learning Analytics
+http://127.0.0.1:5173
 ```
 
----
+The Vite dev server proxies `/api` requests to the FastAPI backend.
 
-## 📸 Screens
+## Core API Routes
 
-- Landing Page
-- Login / Signup
-- Learning Profile
-- Home Dashboard
-- Course Generator
-- Lesson Viewer
-- Quiz
-- Projects
-- Interview Preparation
-- Analytics Dashboard
+```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
 
----
+GET  /api/v1/users/profile
+POST /api/v1/users/profile
 
-## 🎯 Future Scope
+POST /api/v1/courses/generate
+GET  /api/v1/courses/current
+GET  /api/v1/courses/{course_id}
 
-- 🎙️ Voice-Based Learning
-- 🤖 AI Mentor
-- 📅 Smart Study Planner
-- 🏆 Gamification
-- 🌍 Community Learning
-- 📱 Mobile Application
-- ☁️ Cloud Synchronization
+GET  /health
+```
 
----
+## Course Data Model
 
-## 👥 Team
+Generated courses are stored relationally:
 
-### Backend Developer
-- Platform & Orchestration
+```text
+Course
+  -> CourseModule
+    -> Lesson
+    -> Resource
+    -> Quiz
+      -> Question
+  -> CourseProject
+  -> InterviewQuestion
+  -> LearningAnalytics
+  -> Progress
+```
 
-### Backend Developer
-- AI Agents & Learning Engine
+This gives the product a real backend foundation instead of keeping the learning path as a single temporary frontend object.
 
-### Frontend Developer
-- UI/UX & User Experience
+## Scripts
 
----
+```bash
+npm run dev       # Start Vite development server
+npm run build     # Build production frontend
+npm run preview   # Preview production build
+```
 
-## 💡 Inspiration
+Backend tests:
 
-LearnPath AI is inspired by the idea that learning should be **personalized, practical, and intelligent** rather than static and one-size-fits-all.
+```bash
+python -m pytest testing/backend_tests
+```
 
----
+API tests:
 
-## 📜 License
+```bash
+python -m pytest testing/api_tests
+```
 
-This project was developed for a Hackathon.
+## Design Direction
 
----
+LearnPath AI uses a premium AI startup visual style inspired by Apple, Linear, Perplexity, Framer, Notion AI, Arc, Vercel, and Cursor:
 
-# 🚀 LearnPath AI
+- Indigo, violet, purple, cyan, emerald, pink, and yellow accents.
+- Soft animated gradient backgrounds.
+- Glassmorphism cards and navigation.
+- Framer Motion page transitions and micro-interactions.
+- Honest empty states for new users.
+- Large but restrained typography.
+- Responsive layouts for desktop, tablet, and mobile.
 
-### **One Prompt. Whole Learning.**
+## Deployment Notes
+
+For production:
+
+- Replace wildcard CORS with the deployed frontend domain.
+- Use a strong `SECRET_KEY`.
+- Move from SQLite to Postgres.
+- Run database migrations with Alembic.
+- Store secrets in the hosting provider's environment manager.
+- Serve the Vite build behind a CDN or app platform.
+- Run FastAPI behind a production ASGI server such as Uvicorn/Gunicorn.
+
+## Team
+
+Built by **AI Mavericks Team**.

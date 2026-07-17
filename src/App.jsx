@@ -37,6 +37,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { cn } from './lib/utils.js';
+import { generateCourse, getCurrentCourse, getProfile, loginUser, registerUser, saveProfile } from './services/api.js';
 
 const getSavedPath = () => {
   try {
@@ -426,20 +427,7 @@ function AuthLayout({ mode }) {
 
     try {
       if (isLogin) {
-        const res = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          alert(err.detail || 'Login failed');
-          return;
-        }
-        const result = await res.json();
-        localStorage.setItem('learnpath-auth', 'true');
-        localStorage.setItem('learnpath-token', result.access_token);
-        localStorage.setItem('learnpath-user-email', result.user.email);
+        await loginUser(email, password);
         navigate('/profile');
       } else {
         const name = data.get('name');
@@ -448,22 +436,14 @@ function AuthLayout({ mode }) {
           alert('Passwords do not match');
           return;
         }
-        const res = await fetch('/api/v1/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          alert(err.detail || 'Registration failed');
-          return;
-        }
+        await registerUser(email, password);
+        localStorage.setItem('learnpath-user-name', name);
         alert('Registration successful! Please log in.');
         navigate('/login');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error, please try again.');
+      alert(err.response?.data?.detail || 'Network error, please try again.');
     }
   }
 
@@ -578,15 +558,8 @@ function ProfilePage() {
   useEffect(() => {
     const token = localStorage.getItem('learnpath-token');
     if (token) {
-      fetch('/api/v1/users/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-        .then(res => {
-          if (res.ok) {
-            localStorage.setItem('learnpath-profile', 'true');
-            navigate('/dashboard');
-          }
-        })
+      getProfile()
+        .then(() => navigate('/dashboard'))
         .catch(err => console.error(err));
     }
   }, [navigate]);
@@ -598,23 +571,13 @@ function ProfilePage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setLoading(true);
-    const token = localStorage.getItem('learnpath-token');
     try {
-      const res = await fetch('/api/v1/users/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(profile)
-      });
-      if (!res.ok) throw new Error("Failed to save profile");
-      localStorage.setItem('learnpath-profile', 'true');
+      await saveProfile(profile);
       localStorage.setItem('learnpath-user-name', profile.full_name);
       localStorage.setItem('learnpath-topic', profile.learning_goal || profile.target_role || 'AI Engineering');
       navigate('/loading');
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.detail || err.message || 'Failed to save profile');
     } finally {
       setLoading(false);
     }
@@ -750,22 +713,19 @@ function LoadingPage() {
 
   useEffect(() => {
     const topic = localStorage.getItem('learnpath-topic') || 'AI frontend engineering';
-    const token = localStorage.getItem('learnpath-token');
+    const profile = JSON.parse(localStorage.getItem('learnpath-generation-profile') || '{}');
 
-    fetch('/api/v1/learning-path', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ topic })
+    generateCourse({
+      goal: topic,
+      title: `${topic} Learning Path`,
+      target_role: profile.target_role,
+      skill_level: profile.current_skill_level,
+      daily_study_hours: Number(profile.daily_study_hours || 2),
+      learning_style: profile.learning_style,
+      target_completion_date: profile.target_completion_date,
+      favorite_technologies: profile.technologies,
     })
-      .then(res => {
-        if (!res.ok) throw new Error('API failed');
-        return res.json();
-      })
-      .then(data => {
-        localStorage.setItem('learnpath-generated', JSON.stringify(data));
+      .then(() => {
         setApiDone(true);
       })
       .catch(err => {
@@ -823,27 +783,8 @@ function LoadingModulePage() {
   const [apiDone, setApiDone] = useState(false);
 
   useEffect(() => {
-    const moduleIndex = localStorage.getItem('learnpath-generate-module-index');
-    const token = localStorage.getItem('learnpath-token');
-
-    fetch(`/api/v1/learning-path/modules/${moduleIndex}/generate`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('API failed');
-        return res.json();
-      })
-      .then(data => {
-        localStorage.setItem('learnpath-generated', JSON.stringify(data));
-        setApiDone(true);
-      })
-      .catch(err => {
-        console.error(err);
-        setApiDone(true);
-      });
+    const timer = setTimeout(() => setApiDone(true), 1100);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -904,21 +845,20 @@ function HomeDashboard() {
     }
 
     Promise.all([
-      fetch('/api/v1/users/profile', { headers: { 'Authorization': `Bearer ${token}` } }),
-      fetch('/api/v1/learning-path/current', { headers: { 'Authorization': `Bearer ${token}` } })
+      getProfile().then(data => ({ ok: true, data })).catch(err => ({ ok: false, status: err.response?.status })),
+      getCurrentCourse().then(data => ({ ok: true, data })).catch(err => ({ ok: false, status: err.response?.status }))
     ])
-      .then(async ([profileRes, pathRes]) => {
+      .then(([profileRes, pathRes]) => {
         if (profileRes.status === 404) {
           navigate('/profile');
           return;
         }
-        const profileData = await profileRes.json();
-        setProfile(profileData);
+        if (profileRes.ok) {
+          setProfile(profileRes.data);
+        }
 
-        if (pathRes.status === 200) {
-          const pathData = await pathRes.json();
-          setPath(pathData);
-          localStorage.setItem('learnpath-generated', JSON.stringify(pathData));
+        if (pathRes.ok) {
+          setPath(pathRes.data);
         } else {
           setPath(null);
           localStorage.removeItem('learnpath-generated');
@@ -1120,8 +1060,7 @@ function GenerateCoursePage() {
   useEffect(() => {
     const token = localStorage.getItem('learnpath-token');
     if (token) {
-      fetch('/api/v1/users/profile', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(res => res.json())
+      getProfile()
         .then(data => setProfile(data))
         .catch(err => console.error(err));
     }
@@ -1132,6 +1071,7 @@ function GenerateCoursePage() {
     const data = new FormData(event.currentTarget);
     const topic = data.get('Topic') || 'AI frontend engineering';
     localStorage.setItem('learnpath-topic', topic);
+    localStorage.setItem('learnpath-generation-profile', JSON.stringify(profile || {}));
     navigate('/loading');
   }
 
@@ -1272,16 +1212,6 @@ function LessonPage() {
     updatedPath.modules[moduleIndex].progress = 100;
     localStorage.setItem('learnpath-generated', JSON.stringify(updatedPath));
     setPath(updatedPath);
-    
-    const token = localStorage.getItem('learnpath-token');
-    fetch('/api/v1/learning-path', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ topic: path.topic })
-    }).catch(err => console.error(err));
   }
 
   return (
@@ -1685,11 +1615,7 @@ function SettingsPage() {
       navigate('/login');
       return;
     }
-    fetch('/api/v1/users/profile', { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to load profile");
-        return res.json();
-      })
+    getProfile()
       .then(data => {
         setProfile(data);
       })
@@ -1700,20 +1626,11 @@ function SettingsPage() {
   async function handleSave(e) {
     e.preventDefault();
     setUpdating(true);
-    const token = localStorage.getItem('learnpath-token');
     try {
-      const res = await fetch('/api/v1/users/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(profile)
-      });
-      if (!res.ok) throw new Error("Failed to save settings");
+      await saveProfile(profile);
       alert("Settings saved successfully!");
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.detail || err.message || "Failed to save settings");
     } finally {
       setUpdating(false);
     }
