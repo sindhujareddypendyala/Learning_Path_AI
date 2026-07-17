@@ -2,13 +2,30 @@ version: '3.8'
 
 services:
   backend:
-    image: python:3.12-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: learnpath_backend
-    working_dir: /app
-    volumes:
-      - .:/app
     ports:
       - "8000:8000"
-    command: bash -c "pip install --no-cache-dir -r backend/requirements.txt && uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - sqlite_data:/app/backend/database
+      - chroma_data:/app/backend/database/chroma_db
     env_file:
       - .env
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: learnpath_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  sqlite_data:
+  chroma_data:

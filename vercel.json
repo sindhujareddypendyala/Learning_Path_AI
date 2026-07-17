@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://learning-path-ai.onrender.com/api/:match*"
+    }
+  ]
+}
