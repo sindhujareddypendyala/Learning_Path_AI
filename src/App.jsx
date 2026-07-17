@@ -1652,6 +1652,251 @@ function AnalyticsPage() {
   );
 }
 
+function Metric({ label, value, icon: Icon, tone, delay = 0 }) {
+  return (
+    <motion.div
+      variants={rise}
+      initial="hidden"
+      animate="show"
+      transition={{ delay }}
+      className="premium-card p-5 flex items-center justify-between overflow-hidden"
+    >
+      <div className="space-y-1">
+        <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{label}</p>
+        <p className="text-2xl font-black text-slate-950 dark:text-white">{value}</p>
+      </div>
+      <span className={cn('grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white shadow-glow', tone)}>
+        <Icon size={20} />
+      </span>
+    </motion.div>
+  );
+}
+
+function SettingsPage() {
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('learnpath-token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    fetch('/api/v1/users/profile', { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load profile");
+        return res.json();
+      })
+      .then(data => {
+        setProfile(data);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setUpdating(true);
+    const token = localStorage.getItem('learnpath-token');
+    try {
+      const res = await fetch('/api/v1/users/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profile)
+      });
+      if (!res.ok) throw new Error("Failed to save settings");
+      alert("Settings saved successfully!");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  function handleChange(e) {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  }
+
+  if (loading) return <div className="grid h-64 place-items-center"><CircleDashed size={32} className="animate-spin text-brand-primary" /></div>;
+
+  return (
+    <PageTransition>
+      <PageHeader kicker="User Settings" title="Manage your AI learning preferences." />
+      <form onSubmit={handleSave} className="premium-card p-6 sm:p-8 max-w-3xl space-y-6">
+        <div className="grid gap-6 md:grid-cols-2">
+          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Full Name</span>
+            <input name="full_name" required value={profile.full_name || ''} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white" />
+          </label>
+          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Target Career Role</span>
+            <input name="target_role" required value={profile.target_role || ''} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white" />
+          </label>
+          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Daily Study Hours</span>
+            <select name="daily_study_hours" value={profile.daily_study_hours || '2'} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white">
+              <option value="1">1 Hour / day</option>
+              <option value="2">2 Hours / day</option>
+              <option value="3">3 Hours / day</option>
+              <option value="4">4+ Hours / day</option>
+            </select>
+          </label>
+          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Learning Style</span>
+            <select name="learning_style" value={profile.learning_style || 'Project-based'} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white">
+              <option value="Project-based">Project-based (sprints & builders)</option>
+              <option value="Theory-based">Theory-heavy (comprehensive details)</option>
+              <option value="Hybrid">Hybrid (mixed concepts & practice)</option>
+            </select>
+          </label>
+        </div>
+        <button type="submit" disabled={updating} className="btn-primary py-2.5 px-6">
+          {updating ? 'Saving...' : 'Save Settings'}
+        </button>
+      </form>
+    </PageTransition>
+  );
+}
+
+function AppShell({ children, dark, setDark }) {
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const customNavItems = [
+    { label: 'Home', path: '/dashboard', icon: Home },
+    { label: 'Generate Path', path: '/generate', icon: Wand2 },
+    { label: 'Roadmap', path: '/course', icon: BookOpen },
+    { label: 'Interview Prep', path: '/interview', icon: BrainCircuit },
+    { label: 'Analytics', path: '/analytics', icon: LineChart },
+    { label: 'Settings', path: '/settings', icon: Settings },
+  ];
+
+  function handleLogout() {
+    localStorage.clear();
+    navigate('/');
+  }
+
+  return (
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
+      {/* Desktop Sidebar */}
+      <aside className="hidden w-64 border-r border-slate-200 bg-white/70 backdrop-blur-xl dark:border-white/5 dark:bg-slate-900/50 lg:flex lg:flex-col lg:justify-between">
+        <div>
+          <div className="p-6">
+            <BrandLogo />
+          </div>
+          <nav className="space-y-1 px-4">
+            {customNavItems.map((item) => {
+              const active = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className={cn(
+                    'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition',
+                    active
+                      ? 'bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-brand-primary dark:text-violet-400'
+                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'
+                  )}
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+        <div className="p-4 border-t border-slate-200 dark:border-white/5 flex flex-col gap-2">
+          <ThemeToggle dark={dark} setDark={setDark} />
+          <button onClick={handleLogout} className="btn-secondary w-full py-2.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10">
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
+          >
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              onClick={(e) => e.stopPropagation()}
+              className="h-full w-64 bg-white p-6 shadow-xl dark:bg-slate-900 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <BrandLogo />
+                  <button onClick={() => setIsOpen(false)}><X size={20} /></button>
+                </div>
+                <nav className="space-y-1">
+                  {customNavItems.map((item) => {
+                    const active = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.path}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition',
+                          active ? 'bg-indigo-50 text-indigo-600 dark:bg-white/5 dark:text-violet-400' : 'text-slate-500 dark:text-slate-400'
+                        )}
+                      >
+                        <item.icon size={18} />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+              <div className="flex flex-col gap-2 pt-4 border-t border-slate-100 dark:border-white/5">
+                <ThemeToggle dark={dark} setDark={setDark} />
+                <button onClick={handleLogout} className="btn-secondary w-full py-2.5 text-rose-500">
+                  Logout
+                </button>
+              </div>
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main content body */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Navbar */}
+        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white/70 px-6 backdrop-blur-xl dark:border-white/5 dark:bg-slate-950/70">
+          <div className="flex items-center gap-4">
+            <button className="lg:hidden" onClick={() => setIsOpen(true)}><Menu size={22} /></button>
+            <LogoMark className="h-8 w-8 lg:hidden" />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-bold text-slate-500 dark:text-slate-400">LearnPath Studio</span>
+          </div>
+        </header>
+
+        {/* Dynamic Page content */}
+        <main className="flex-1 overflow-auto p-6 md:p-8">
+          <div className="mx-auto max-w-6xl">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function PageHeader({ kicker, title }) {
   return (
     <div className="mb-7">
