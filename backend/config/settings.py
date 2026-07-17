@@ -1,6 +1,7 @@
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import model_validator
 
 
 class Settings(BaseSettings):
@@ -28,6 +29,14 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     CHROMA_DB_DIR: str = os.path.join(_base_dir, 'database', 'chroma_db').replace("\\", "/")
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
+
+    @model_validator(mode="after")
+    def resolve_db_url(self) -> "Settings":
+        if not self.DATABASE_URL or "./backend/database" in self.DATABASE_URL or "sqlite:///./" in self.DATABASE_URL:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            db_path = os.path.join(base_dir, 'database', 'sqlite.db').replace("\\", "/")
+            self.DATABASE_URL = f"sqlite:///{db_path}"
+        return self
 
     # Pydantic v2 configuration for loading the .env file
     model_config = SettingsConfigDict(
