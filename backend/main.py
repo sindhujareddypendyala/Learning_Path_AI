@@ -59,7 +59,7 @@ def create_app() -> FastAPI:
     from backend.config.settings import settings
 
     # Create all database tables (For production, Alembic should be used instead)
-    from backend.models import user, learning_path
+    from backend.models import user, learning_path, course
     Base.metadata.create_all(bind=engine)
 
     # Add global exception handler
