@@ -996,8 +996,8 @@ function HomeDashboard() {
         {/* Welcome Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Welcome back, {profile?.full_name || 'Learner'} 👋</h1>
-            <p className="text-xs text-slate-400 mt-1">Ready to build another skill chunk today?</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950">Welcome back, {profile?.full_name || 'Learner'} 👋</h1>
+            <p className="text-xs text-slate-500 mt-1">Ready to build another skill chunk today?</p>
           </div>
           <Link to="/generate" className="btn-primary py-2 px-5 text-xs font-bold shadow-glow flex items-center gap-1.5 w-fit">
             Create Custom Path <Sparkles size={14} />
@@ -1005,7 +1005,7 @@ function HomeDashboard() {
         </div>
 
         {/* Course Resume Banner */}
-        <div className="bg-gradient-to-r from-indigo-900 to-indigo-950 border border-indigo-500/20 p-6 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="course-banner bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 border border-indigo-400/30 p-6 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
           <div className="flex-1 space-y-4">
             <span className="text-[10px] font-bold uppercase tracking-widest bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2.5 py-0.5 rounded-full w-fit">
               Current Roadmap
@@ -1027,21 +1027,21 @@ function HomeDashboard() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Quick Actions / Starts */}
-          <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl lg:col-span-2 space-y-4">
-            <h2 className="text-base font-bold text-white">Recommended Actions</h2>
+          <div className="bg-white/85 border border-indigo-100 p-6 rounded-3xl shadow-soft backdrop-blur-xl lg:col-span-2 space-y-4">
+            <h2 className="text-base font-bold text-slate-950">Recommended Actions</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               {quickStarts.map((item) => (
                 <Link 
                   key={item.title} 
                   to={item.path} 
-                  className="p-5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between hover:border-indigo-500/20 hover:bg-white/10 transition space-y-4"
+                  className="p-5 rounded-2xl bg-gradient-to-br from-white to-indigo-50/70 border border-slate-100 flex flex-col justify-between hover:-translate-y-1 hover:border-indigo-300 hover:shadow-md transition space-y-4"
                 >
                   <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center", item.color)}>
                     <item.icon size={16} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-xs leading-normal">{item.title}</h3>
-                    <p className="text-[10px] text-slate-400 leading-normal mt-1">{item.desc}</p>
+                    <h3 className="font-bold text-slate-900 text-xs leading-normal">{item.title}</h3>
+                    <p className="text-[10px] text-slate-500 leading-normal mt-1">{item.desc}</p>
                   </div>
                 </Link>
               ))}
@@ -1049,17 +1049,17 @@ function HomeDashboard() {
           </div>
 
           {/* Goals and Targets */}
-          <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl space-y-4 flex flex-col justify-between">
+          <div className="bg-white/85 border border-indigo-100 p-6 rounded-3xl shadow-soft backdrop-blur-xl space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              <h2 className="text-base font-bold text-white">Today's Goal</h2>
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs leading-relaxed font-semibold">
+              <h2 className="text-base font-bold text-slate-950">Today's Goal</h2>
+              <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs leading-relaxed font-semibold">
                 Study concepts in "{currentModule.title}" and complete Lesson 1.
               </div>
             </div>
             
             <div className="space-y-1">
               <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target Hours</h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-600">
                 Daily pace is set to **{profile?.daily_study_hours || '2'} hours**.
               </p>
             </div>
@@ -1114,23 +1114,23 @@ function GenerateCoursePage() {
           <div className="inline-flex h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 items-center justify-center animate-pulse">
             <Sparkles size={24} />
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-950 leading-tight">
             What do you want to master today?
           </h1>
-          <p className="text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+          <p className="text-slate-600 text-sm max-w-lg mx-auto leading-relaxed">
             Specify any language, framework, or professional target role. Our AI agents will structure a complete educational roadmap.
           </p>
         </div>
 
         {/* Search Bar / Input Area */}
         <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-          <div className="relative group rounded-3xl border border-white/5 bg-[#111827]/60 p-6 backdrop-blur-2xl shadow-glow transition focus-within:border-indigo-500/30 text-left">
+          <div className="relative group rounded-3xl border border-indigo-100 bg-white/90 p-6 backdrop-blur-2xl shadow-soft transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100 text-left">
             <textarea 
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               required 
               placeholder="e.g. Become a Senior Python Developer with Microservices focus" 
-              className="w-full bg-transparent text-lg font-medium outline-none text-white placeholder:text-slate-500 resize-none h-28"
+              className="w-full bg-transparent text-lg font-medium outline-none text-slate-900 placeholder:text-slate-400 resize-none h-28"
             />
             <div className="absolute right-4 bottom-4 flex items-center gap-3">
               <span className="text-xs text-slate-500 hidden sm:inline">Press Enter to generate</span>
@@ -1152,7 +1152,7 @@ function GenerateCoursePage() {
                   key={sug}
                   type="button"
                   onClick={() => setPromptText(sug)}
-                  className="text-left p-3.5 rounded-2xl bg-white/5 border border-white/5 text-xs hover:bg-white/10 hover:border-indigo-500/20 transition text-slate-300 font-medium"
+                  className="text-left p-3.5 rounded-2xl bg-white/85 border border-slate-100 text-xs hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-sm transition text-slate-700 font-medium"
                 >
                   {sug}
                 </button>
@@ -1162,7 +1162,7 @@ function GenerateCoursePage() {
         </form>
 
         {/* Popular paths */}
-        <div className="border-t border-white/5 pt-8 max-w-3xl mx-auto text-left space-y-4">
+        <div className="border-t border-indigo-100 pt-8 max-w-3xl mx-auto text-left space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Popular Career Tracks</h3>
           <div className="grid gap-4 sm:grid-cols-4">
             {popularPaths.map((p) => (
@@ -1170,22 +1170,22 @@ function GenerateCoursePage() {
                 key={p.title}
                 type="button"
                 onClick={() => setPromptText(`Master ${p.title} roadmap using ${p.tech}`)}
-                className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-indigo-500/20 transition text-left space-y-1.5"
+                className="p-4 rounded-2xl bg-white/85 border border-slate-100 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-sm transition text-left space-y-1.5"
               >
-                <h4 className="font-bold text-white text-xs leading-normal">{p.title}</h4>
-                <p className="text-[10px] text-slate-400 leading-normal">{p.tech}</p>
+                <h4 className="font-bold text-slate-900 text-xs leading-normal">{p.title}</h4>
+                <p className="text-[10px] text-slate-500 leading-normal">{p.tech}</p>
               </button>
             ))}
           </div>
         </div>
 
         {/* Active constraints pill indicator */}
-        <div className="flex flex-wrap items-center justify-center gap-3 max-w-xl mx-auto pt-4 text-xs text-slate-400 bg-white/5 border border-white/5 p-4 rounded-2xl">
-          <span>Daily study hours: <strong className="text-white">{profile?.daily_study_hours || '2'} hrs</strong></span>
+        <div className="flex flex-wrap items-center justify-center gap-3 max-w-xl mx-auto pt-4 text-xs text-slate-600 bg-indigo-50/70 border border-indigo-100 p-4 rounded-2xl">
+          <span>Daily study hours: <strong className="text-indigo-700">{profile?.daily_study_hours || '2'} hrs</strong></span>
           <span>•</span>
-          <span>Target Level: <strong className="text-white">{profile?.current_skill_level || 'Beginner'}</strong></span>
+          <span>Target Level: <strong className="text-indigo-700">{profile?.current_skill_level || 'Beginner'}</strong></span>
           <span>•</span>
-          <span>Languages: <strong className="text-white">{profile?.languages_known || 'Python, JavaScript'}</strong></span>
+          <span>Languages: <strong className="text-indigo-700">{profile?.languages_known || 'Python, JavaScript'}</strong></span>
         </div>
       </div>
     </PageTransition>

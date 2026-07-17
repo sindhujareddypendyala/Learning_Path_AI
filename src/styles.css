@@ -236,3 +236,43 @@ h1, h2, h3, .font-display {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-80px, 60px, 0); }
 }
+
+/* Bright learner workspace: converts legacy dark utility surfaces across every
+   course, lesson, project, quiz, interview, analytics, and settings screen. */
+html:not(.dark) main [class*="bg-[#111827]"] {
+  background: rgba(255, 255, 255, .92) !important;
+  border-color: rgba(224, 231, 255, .95) !important;
+  box-shadow: 0 14px 38px rgba(99, 102, 241, .08) !important;
+}
+
+html:not(.dark) main [class*="bg-white/5"] {
+  background: rgba(248, 250, 255, .92) !important;
+}
+
+html:not(.dark) main [class*="border-white/5"] {
+  border-color: rgba(224, 231, 255, .95) !important;
+}
+
+html:not(.dark) main .text-white {
+  color: #172033 !important;
+}
+
+html:not(.dark) main .text-slate-300,
+html:not(.dark) main .text-slate-400 {
+  color: #64748b !important;
+}
+
+html:not(.dark) main .btn-primary,
+html:not(.dark) main .btn-primary * {
+  color: white !important;
+}
+
+html:not(.dark) main .course-banner,
+html:not(.dark) main .course-banner .text-white,
+html:not(.dark) main .course-banner .text-slate-300 {
+  color: white !important;
+}
+
+html:not(.dark) main .course-banner [class*="bg-white/5"] {
+  background: rgba(255, 255, 255, .18) !important;
+}
