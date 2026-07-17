@@ -1081,6 +1081,7 @@ function HomeDashboard() {
 function GenerateCoursePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [promptText, setPromptText] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('learnpath-token');
@@ -1093,44 +1094,123 @@ function GenerateCoursePage() {
 
   function handleSubmit(event) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const topic = data.get('Topic') || 'AI frontend engineering';
+    const topic = promptText || 'AI frontend engineering';
     localStorage.setItem('learnpath-topic', topic);
     localStorage.setItem('learnpath-generation-profile', JSON.stringify(profile || {}));
     navigate('/loading');
   }
 
+  const suggestions = [
+    "Become a Python Machine Learning Specialist",
+    "Master React & Tailwind CSS Frontend Systems",
+    "Architect Microservices in Node.js & Docker",
+    "Build Production APIs with FastAPI & PostgreSQL"
+  ];
+
   return (
     <PageTransition>
-      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <PremiumCard className="p-6 sm:p-8">
-          <p className="font-semibold text-brand-primary">Generate Course</p>
-          <h1 className="mt-2 text-4xl font-extrabold leading-tight text-slate-950 dark:text-white">
-            👋 Hello {profile?.full_name || 'Learner'}
-          </h1>
-          <p className="mt-2 text-xl font-bold text-slate-700 dark:text-slate-300">What would you like to learn today?</p>
-          <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">The agent team will use your profile settings (Languages: {profile?.languages_known || 'N/A'}, Daily Target: {profile?.daily_study_hours || '2'} hours) to build a custom roadmap.</p>
-          
-          <div className="mt-7">
-            <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 focus-within:shadow-glow dark:border-white/10 dark:bg-slate-950/70">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Generate Learning Path</span>
-              <input name="Topic" required placeholder="e.g. Become Python Backend Developer" className="mt-2 w-full bg-transparent text-xl font-bold outline-none dark:text-white placeholder:text-slate-300" />
-            </label>
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Left Workspace Panel */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <Sparkles size={20} className="animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Workspace</p>
+              <h1 className="text-2xl font-extrabold text-white">Create a Custom Learning Journey</h1>
+            </div>
           </div>
-          <button type="submit" className="btn-primary ripple mt-7">Generate Course <ArrowRight size={18} /></button>
-        </PremiumCard>
-        <PremiumCard className="p-6">
-          <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Agent Pipeline</h2>
-          <div className="mt-5 space-y-4">
-            {['Curriculum map', 'Lesson sequence', 'Projects', 'Quizzes', 'Interview prep'].map((item) => (
-              <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/55 p-3 dark:border-white/10 dark:bg-white/5">
-                <CircleDashed size={18} className="text-brand-primary" />
-                <span className="font-semibold text-slate-700 dark:text-slate-200">{item}</span>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="relative group rounded-3xl border border-white/5 bg-[#111827]/60 p-6 backdrop-blur-2xl shadow-glow transition focus-within:border-indigo-500/30">
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400 block mb-3">Goal Specification</span>
+              <textarea 
+                value={promptText}
+                onChange={(e) => setPromptText(e.target.value)}
+                required 
+                placeholder="What would you like to master today?" 
+                className="w-full bg-transparent text-xl font-medium outline-none text-white placeholder:text-slate-500 resize-none h-32"
+              />
+              <div className="absolute right-4 bottom-4 text-xs text-slate-500">Press Enter to generate</div>
+            </div>
+
+            {/* Suggested Prompts */}
+            <div className="space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Suggested Prompts</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {suggestions.map((sug) => (
+                  <button 
+                    key={sug}
+                    type="button"
+                    onClick={() => setPromptText(sug)}
+                    className="text-left p-3 rounded-2xl bg-[#111827] border border-white/5 text-sm hover:bg-white/10 hover:border-indigo-500/20 transition text-slate-300"
+                  >
+                    {sug}
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <button type="submit" className="btn-primary w-full py-4 text-base font-bold shadow-glow flex items-center justify-center gap-2">
+              Build Roadmap <ArrowRight size={18} />
+            </button>
+          </form>
+        </div>
+
+        {/* Right Info Panel */}
+        <div className="space-y-6">
+          <div className="premium-card p-6 space-y-4">
+            <h2 className="text-lg font-bold text-white">Generation Constraints</h2>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Our agent swarm builds customized paths adhering to your profile settings. Ensure your profile parameters match your desired path scope:
+            </p>
+
+            <div className="space-y-3 pt-2">
+              <div className="flex justify-between text-xs py-2 border-b border-white/5">
+                <span className="text-slate-400">Skill Level:</span>
+                <span className="font-bold text-white">{profile?.current_skill_level || 'Beginner'}</span>
+              </div>
+              <div className="flex justify-between text-xs py-2 border-b border-white/5">
+                <span className="text-slate-400">Languages Known:</span>
+                <span className="font-bold text-white">{profile?.languages_known || 'Python, JavaScript'}</span>
+              </div>
+              <div className="flex justify-between text-xs py-2 border-b border-white/5">
+                <span className="text-slate-400">Daily Study Hours:</span>
+                <span className="font-bold text-white">{profile?.daily_study_hours || '2'} hours</span>
+              </div>
+              <div className="flex justify-between text-xs py-2 border-b border-white/5">
+                <span className="text-slate-400">Learning Style:</span>
+                <span className="font-bold text-white">{profile?.learning_style || 'Project-based'}</span>
+              </div>
+            </div>
+
+            <Link to="/profile" className="btn-secondary w-full py-2.5 text-xs text-center block mt-4">
+              Update Profile Settings
+            </Link>
           </div>
-        </PremiumCard>
-      </form>
+
+          <div className="premium-card p-6 space-y-4">
+            <h2 className="text-lg font-bold text-white">Swarm Agents</h2>
+            <div className="space-y-3">
+              {[
+                { title: 'Curriculum Swarm', desc: 'Designs modules timeline & objectives.' },
+                { title: 'Explanatory Swarm', desc: 'Crafts rich notes & theory analogy.' },
+                { title: 'Assessment Swarm', desc: 'Builds module-specific quizzes.' },
+                { title: 'Projects Swarm', desc: 'Scopes labs, portfolio, & capstone projects.' }
+              ].map((item, index) => (
+                <div key={item.title} className="flex gap-3 text-xs leading-relaxed">
+                  <span className="grid h-6 w-6 place-items-center rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">{index + 1}</span>
+                  <div>
+                    <p className="font-bold text-white">{item.title}</p>
+                    <p className="text-slate-400">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </PageTransition>
   );
 }
@@ -1148,13 +1228,15 @@ function CoursePage() {
   if (!path) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-bold">No active learning path. Generate one to start!</h2>
+        <h2 className="text-xl font-bold text-slate-400">No active learning path. Generate one to start!</h2>
       </div>
     );
   }
 
   const activeModules = path.modules;
   const topic = path.topic;
+  const currentActiveIndex = activeModules.findIndex(m => (m.progress || 0) < 100);
+  const activeIndex = currentActiveIndex === -1 ? activeModules.length - 1 : currentActiveIndex;
 
   async function handleAction(index, targetRoute) {
     const module = activeModules[index];
@@ -1169,38 +1251,126 @@ function CoursePage() {
 
   return (
     <PageTransition>
-      <PageHeader kicker="Course Roadmap" title={`${topic} roadmap.`} />
-      <div className="space-y-5">
-        {activeModules.map((module, index) => (
-          <motion.article key={module.title} layout whileHover={{ y: -4 }} className="premium-card overflow-hidden">
-            <button onClick={() => setExpanded(expanded === index ? -1 : index)} className="flex w-full items-center justify-between gap-4 p-5 text-left">
-              <div className="flex items-center gap-4">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 font-extrabold text-white shadow-glow">{index + 1}</span>
-                <div>
-                  <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">{module.title}</h2>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{module.difficulty} · {module.duration} · {module.progress || 0}% complete</p>
-                </div>
-              </div>
-              <ChevronDown className={cn('transition', expanded === index && 'rotate-180')} size={20} />
-            </button>
-            <AnimatePresence>
-              {expanded === index && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-slate-200 dark:border-white/10">
-                  <div className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-center">
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${module.progress || 0}%` }} className="h-2 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-400" />
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <BookOpen size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Curriculum Path</p>
+          <h1 className="text-2xl font-extrabold text-white">{topic}</h1>
+        </div>
+      </div>
+
+      <div className="relative pl-8 sm:pl-12 border-l border-white/5 space-y-8 py-2">
+        {activeModules.map((module, index) => {
+          const isCompleted = index < activeIndex;
+          const isActive = index === activeIndex;
+          const isExpanded = expanded === index;
+
+          return (
+            <div key={module.title} className="relative">
+              {/* Timeline dot */}
+              <span 
+                className={cn(
+                  "absolute -left-[45px] sm:-left-[61px] top-4 w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold transition-all duration-300 z-10",
+                  isCompleted 
+                    ? "bg-emerald-500/25 border-emerald-500/30 text-emerald-400" 
+                    : isActive 
+                      ? "bg-indigo-500 border-indigo-500/30 text-white shadow-glow animate-pulse" 
+                      : "bg-[#111827] border-white/5 text-slate-500"
+                )}
+              >
+                {isCompleted ? '✓' : index + 1}
+              </span>
+
+              <motion.article 
+                layout 
+                whileHover={{ x: 4 }} 
+                className={cn(
+                  "premium-card transition-all duration-300",
+                  isActive ? "border-indigo-500/20 bg-[#111827]/80" : "bg-[#111827]/50"
+                )}
+              >
+                <button 
+                  onClick={() => setExpanded(isExpanded ? -1 : index)} 
+                  className="flex w-full items-center justify-between gap-4 p-5 text-left"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-lg font-bold text-white truncate">{module.title}</h2>
+                      {isActive && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                          Current Focus
+                        </span>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button onClick={() => handleAction(index, '/lesson')} className="btn-primary py-2 px-4 text-sm">Lesson</button>
-                      <button onClick={() => handleAction(index, '/quiz')} className="btn-secondary py-2 px-4 text-sm">Quiz</button>
-                      <button onClick={() => handleAction(index, '/projects')} className="btn-secondary py-2 px-4 text-sm">Projects</button>
-                    </div>
+                    <p className="mt-1.5 text-xs text-slate-400 flex flex-wrap items-center gap-2">
+                      <span>{module.difficulty}</span>
+                      <span>•</span>
+                      <span>{module.duration}</span>
+                      <span>•</span>
+                      <span className="text-indigo-400 font-bold">{module.progress || 0}% complete</span>
+                    </p>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.article>
-        ))}
+                  <ChevronDown className={cn('transition text-slate-400', isExpanded && 'rotate-180')} size={18} />
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }} 
+                      animate={{ height: 'auto', opacity: 1 }} 
+                      exit={{ height: 0, opacity: 0 }} 
+                      className="border-t border-white/5 bg-[#0B1020]/30"
+                    >
+                      <div className="p-5 space-y-4">
+                        <div className="space-y-2">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Module Scope</p>
+                          <p className="text-sm text-slate-300 leading-relaxed">{module.description || 'Analyze execution pipelines, configurations, and core setup logic.'}</p>
+                        </div>
+
+                        {module.learning_objectives && module.learning_objectives.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Learning Objectives</p>
+                            <ul className="grid gap-2 sm:grid-cols-2">
+                              {module.learning_objectives.map((obj, i) => (
+                                <li key={i} className="flex gap-2.5 text-xs text-slate-300">
+                                  <Check className="text-emerald-500 shrink-0" size={14} />
+                                  <span>{obj}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className="pt-3 border-t border-white/5 flex flex-col sm:flex-row items-center gap-4 justify-between">
+                          <div className="w-full sm:max-w-xs flex items-center gap-3">
+                            <span className="text-xs text-slate-500 shrink-0">Progress:</span>
+                            <div className="w-full h-1.5 overflow-hidden rounded-full bg-white/5">
+                              <motion.div initial={{ width: 0 }} animate={{ width: `${module.progress || 0}%` }} className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                            <button onClick={() => handleAction(index, '/lesson')} className="btn-primary py-2 px-4 text-xs font-bold shadow-glow flex-1 sm:flex-initial">
+                              Start Lesson
+                            </button>
+                            <button onClick={() => handleAction(index, '/quiz')} className="btn-secondary py-2 px-4 text-xs font-bold flex-1 sm:flex-initial">
+                              Test Quiz
+                            </button>
+                            <button onClick={() => handleAction(index, '/projects')} className="btn-secondary py-2 px-4 text-xs font-bold flex-1 sm:flex-initial">
+                              View Labs
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.article>
+            </div>
+          );
+        })}
       </div>
     </PageTransition>
   );
@@ -1469,158 +1639,214 @@ function LessonPage() {
     }
   };
 
+  const words = (lesson.explanation || '').split(' ').length + (lesson.theory || '').split(' ').length;
+  const readingTime = Math.max(1, Math.round(words / 200));
+
   return (
     <PageTransition>
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <article className="premium-card p-6 sm:p-9 space-y-6">
-          <div className="mb-6 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
-            <motion.div initial={{ width: 0 }} animate={{ width: `${module.progress || 0}%` }} className="h-2 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-400" />
-          </div>
-          
-          <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Top sticky progress bar */}
+      <div className="fixed top-[64px] left-0 right-0 h-1 bg-[#111827] z-30">
+        <motion.div 
+          initial={{ width: 0 }} 
+          animate={{ width: `${module.progress || 0}%` }} 
+          className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400"
+        />
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px] mt-4">
+        {/* Large Notion-Style Reading Area */}
+        <article className="bg-[#111827]/40 border border-white/5 p-6 sm:p-10 rounded-3xl backdrop-blur-xl space-y-8 max-w-none">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-6">
             <div>
-              <p className="font-semibold text-brand-primary">Module {moduleIndex + 1} · Lesson {moduleIndex + 1}.1</p>
-              <h1 className="mt-2 text-4xl font-extrabold text-slate-950 dark:text-white leading-tight">{module.title}</h1>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+                  Module {moduleIndex + 1} · Lesson {moduleIndex + 1}.1
+                </span>
+                <span className="text-xs bg-white/5 border border-white/5 text-slate-400 px-2 py-0.5 rounded">
+                  {readingTime} min read
+                </span>
+              </div>
+              <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold text-white leading-tight">{module.title}</h1>
             </div>
             
-            <button onClick={handleDownloadPDF} className="btn-secondary flex items-center gap-2 px-4 py-2 text-sm shadow-sm hover:border-violet-300">
-              <Download size={16} className="text-brand-primary" />
-              Download PDF Notes
+            <button 
+              onClick={handleDownloadPDF} 
+              className="btn-secondary flex items-center gap-2 px-4 py-2.5 text-xs font-bold hover:border-indigo-500/30"
+            >
+              <Download size={15} className="text-indigo-400" />
+              Download PDF
             </button>
           </div>
 
+          {/* Table of Contents Sticky Nav (Minimalist) */}
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-xs space-y-2">
+            <p className="font-bold text-slate-400 uppercase tracking-wider">Quick Navigation</p>
+            <div className="flex flex-wrap gap-4 text-slate-300">
+              <a href="#intro" className="hover:text-indigo-400 transition">1. Introduction</a>
+              <a href="#theory" className="hover:text-indigo-400 transition">2. Theoretical Background</a>
+              <a href="#explanation" className="hover:text-indigo-400 transition">3. Core Concepts</a>
+              <a href="#examples" className="hover:text-indigo-400 transition">4. Implementation details</a>
+            </div>
+          </div>
+
+          {/* 1. Introduction section */}
           {lesson.introduction && (
-            <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 border-l-4 border-indigo-500 pl-4 py-1">
-              <p className="text-base leading-8 font-medium italic">{lesson.introduction}</p>
+            <div id="intro" className="border-l-2 border-indigo-500 pl-4 py-1 italic text-slate-300 text-lg leading-relaxed">
+              {lesson.introduction}
             </div>
           )}
 
+          {/* 2. Theory section */}
           {lesson.theory && (
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <BookOpen size={20} className="text-brand-primary" />
-                Theoretical Background
+            <div id="theory" className="space-y-3 pt-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <BookOpen size={20} className="text-indigo-400" />
+                Theory & Mental Model
               </h2>
-              <p className="text-base leading-8 text-slate-600 dark:text-slate-300">{lesson.theory}</p>
+              <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
+                {lesson.theory}
+              </div>
             </div>
           )}
 
-          <div className="space-y-3">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Layers3 size={20} className="text-brand-primary" />
-              Detailed Explanation
+          {/* 3. Detailed Explanation */}
+          <div id="explanation" className="space-y-4 pt-4 border-t border-white/5">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Layers3 size={20} className="text-indigo-400" />
+              Core Mechanics
             </h2>
-            <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 whitespace-pre-line leading-8">
+            <div className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
               {lesson.explanation}
             </div>
           </div>
 
-          {lesson.examples && (
-            <div className="space-y-2">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Sparkles size={20} className="text-amber-500" />
-                Practical Examples
+          {/* 4. Examples & Code */}
+          {(lesson.examples || lesson.code_snippet) && (
+            <div id="examples" className="space-y-4 pt-4 border-t border-white/5">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Code2 size={20} className="text-indigo-400" />
+                Practical Blueprint
               </h2>
-              <p className="text-base leading-8 text-slate-600 dark:text-slate-300">{lesson.examples}</p>
+              {lesson.examples && <p className="text-slate-300 text-sm leading-relaxed">{lesson.examples}</p>}
+              {lesson.code_snippet && (
+                <div className="relative group">
+                  <pre className="overflow-auto rounded-2xl bg-slate-950 p-5 text-xs text-slate-100 font-mono border border-white/5">
+                    <code>{lesson.code_snippet}</code>
+                  </pre>
+                  <span className="absolute right-3 top-3 text-[10px] uppercase font-mono px-2 py-0.5 bg-white/5 text-slate-500 rounded border border-white/5">
+                    Code
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
-          {lesson.code_snippet && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Implementation Code</h3>
-              <pre className="overflow-auto rounded-2xl bg-slate-950 p-5 text-sm text-slate-100 font-mono border border-slate-800">
-                <code>{lesson.code_snippet}</code>
-              </pre>
-            </div>
-          )}
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-sky-200/50 bg-sky-50/40 p-4 dark:border-sky-500/10 dark:bg-sky-500/5">
-              <h3 className="font-bold text-sky-800 dark:text-sky-400 flex items-center gap-1.5">
-                <Sparkles size={16} /> Pro Tip
+          {/* Highlights & Developer Tips Grid */}
+          <div className="grid gap-4 sm:grid-cols-2 pt-6 border-t border-white/5">
+            <div className="p-5 rounded-2xl border border-indigo-500/10 bg-indigo-500/5 space-y-2">
+              <h3 className="font-bold text-indigo-400 flex items-center gap-2 text-sm">
+                <Sparkles size={16} /> Swarm Insights
               </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{lesson.tips}</p>
+              <p className="text-xs text-slate-300 leading-relaxed">{lesson.tips}</p>
             </div>
             
-            <div className="rounded-2xl border border-emerald-200/50 bg-emerald-50/40 p-4 dark:border-emerald-500/10 dark:bg-emerald-500/5">
-              <h3 className="font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
+            <div className="p-5 rounded-2xl border border-emerald-500/10 bg-emerald-500/5 space-y-2">
+              <h3 className="font-bold text-emerald-400 flex items-center gap-2 text-sm">
                 <CheckCircle2 size={16} /> Best Practices
               </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{lesson.best_practices}</p>
+              <p className="text-xs text-slate-300 leading-relaxed">{lesson.best_practices}</p>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-rose-200/50 bg-rose-50/40 p-4 dark:border-rose-500/10 dark:bg-rose-500/5">
-              <h3 className="font-bold text-rose-800 dark:text-rose-400 flex items-center gap-1.5">
-                <X size={16} /> Common Mistakes
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="p-5 rounded-2xl border border-rose-500/10 bg-rose-500/5 space-y-2">
+              <h3 className="font-bold text-rose-400 flex items-center gap-2 text-sm">
+                <X size={16} /> Potential Pitfalls
               </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{lesson.common_mistakes}</p>
+              <p className="text-xs text-slate-300 leading-relaxed">{lesson.common_mistakes}</p>
             </div>
             
-            <div className="rounded-2xl border border-amber-200/50 bg-amber-50/40 p-4 dark:border-amber-500/10 dark:bg-amber-500/5">
-              <h3 className="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5">
-                <Code2 size={16} /> Practice Exercise
+            <div className="p-5 rounded-2xl border border-amber-500/10 bg-amber-50/5 space-y-2">
+              <h3 className="font-bold text-amber-400 flex items-center gap-2 text-sm">
+                <Code2 size={16} /> Developer Challenge
               </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{lesson.practice_exercise || 'Try rewriting the above code to implement a robust connection pool and verify exceptions.'}</p>
+              <p className="text-xs text-slate-300 leading-relaxed">{lesson.practice_exercise || 'Try updating the code block above to support connection retries.'}</p>
             </div>
           </div>
 
           {lesson.quick_revision && (
-            <div className="rounded-2xl border border-indigo-200/50 bg-indigo-50/30 p-4 dark:border-indigo-500/10 dark:bg-indigo-500/5">
-              <h3 className="font-bold text-indigo-800 dark:text-indigo-400 flex items-center gap-1.5">
-                <Trophy size={16} /> Quick Revision
+            <div className="p-5 rounded-2xl border border-violet-500/10 bg-violet-500/5 space-y-2">
+              <h3 className="font-bold text-violet-400 flex items-center gap-2 text-sm">
+                <Trophy size={16} /> Quick Recap
               </h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{lesson.quick_revision}</p>
+              <p className="text-xs text-slate-300 leading-relaxed">{lesson.quick_revision}</p>
             </div>
           )}
 
-          <div className="border-t border-slate-100 pt-6 dark:border-white/10">
-            <h3 className="font-bold text-slate-950 dark:text-white">Summary</h3>
-            <p className="mt-2 text-base text-slate-600 dark:text-slate-300 leading-relaxed">{lesson.summary}</p>
+          {/* Bottom Module Summary */}
+          <div className="border-t border-white/5 pt-6 space-y-2">
+            <h3 className="font-bold text-white text-sm">Executive Summary</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">{lesson.summary}</p>
           </div>
 
-          <div className="flex justify-between items-center border-t border-slate-100 pt-6 dark:border-white/10">
-            <button disabled={moduleIndex === 0} onClick={() => { localStorage.setItem('learnpath-active-module-index', moduleIndex - 1); setModuleIndex(moduleIndex - 1); }} className="btn-secondary py-2">
+          {/* Navigation Controls */}
+          <div className="flex justify-between items-center border-t border-white/5 pt-6">
+            <button 
+              disabled={moduleIndex === 0} 
+              onClick={() => { localStorage.setItem('learnpath-active-module-index', moduleIndex - 1); setModuleIndex(moduleIndex - 1); }} 
+              className="btn-secondary py-2.5 px-4 text-xs font-bold disabled:opacity-40"
+            >
               Previous Module
             </button>
-            <button onClick={handleComplete} className="btn-primary py-2 px-4">
-              Mark Complete
+            <button 
+              onClick={handleComplete} 
+              className="btn-primary py-2.5 px-5 text-xs font-bold shadow-glow"
+            >
+              Mark as Read
             </button>
-            <button disabled={moduleIndex === path.modules.length - 1} onClick={() => { localStorage.setItem('learnpath-active-module-index', moduleIndex + 1); setModuleIndex(moduleIndex + 1); }} className="btn-secondary py-2">
+            <button 
+              disabled={moduleIndex === path.modules.length - 1} 
+              onClick={() => { localStorage.setItem('learnpath-active-module-index', moduleIndex + 1); setModuleIndex(moduleIndex + 1); }} 
+              className="btn-secondary py-2.5 px-4 text-xs font-bold disabled:opacity-40"
+            >
               Next Module
             </button>
           </div>
         </article>
 
-        <aside className="space-y-4">
-          <div className="premium-card p-5 space-y-4 lg:sticky lg:top-24">
-            <h2 className="font-bold text-lg text-slate-950 dark:text-white flex items-center gap-2">
-              <Layers3 size={20} className="text-brand-primary" />
-              Curated Resource Library
-            </h2>
-            <p className="text-xs text-slate-400">Trusted documents, videos, and tutorials matched automatically to this topic.</p>
+        {/* Curated Resource Drawer (Sticky Aside) */}
+        <aside className="space-y-6">
+          <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl space-y-4 lg:sticky lg:top-24">
+            <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+              <Layers3 size={18} className="text-indigo-400" />
+              <h2 className="font-bold text-sm text-white">Curated Resources</h2>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">Trusted books, videos, articles, and documentation matched to this module scope.</p>
             
             {Object.keys(groupedResources).length === 0 ? (
-              <p className="text-sm text-slate-400 italic">No matched resources available.</p>
+              <p className="text-xs text-slate-500 italic">No resource suggestions match this module yet.</p>
             ) : (
-              <div className="space-y-6 overflow-y-auto max-h-[70vh] pr-1">
+              <div className="space-y-5 overflow-y-auto max-h-[60vh] pr-1">
                 {Object.entries(groupedResources).map(([group, list]) => (
                   <div key={group} className="space-y-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                       {getResourceIcon(group)}
                       {group}
                     </h3>
                     <div className="space-y-2">
                       {list.map((res) => (
-                        <div key={res.title} className="rounded-xl border border-white/70 bg-white/55 p-3.5 shadow-sm hover:border-violet-300 dark:border-white/5 dark:bg-white/5 space-y-1.5 transition">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{res.title}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal">{res.description}</p>
+                        <div key={res.title} className="rounded-2xl border border-white/5 bg-[#111827]/60 p-4 space-y-2 hover:border-indigo-500/20 transition">
+                          <p className="text-xs font-bold text-white leading-normal">{res.title}</p>
+                          <p className="text-[10px] text-slate-400 leading-normal">{res.description}</p>
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{res.site_name}</span>
-                            <a href={res.url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-indigo-600 hover:text-indigo-500 dark:text-violet-400 flex items-center gap-0.5">
-                              Open Link
-                              <ArrowRight size={12} />
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{res.site_name}</span>
+                            <a 
+                              href={res.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-0.5"
+                            >
+                              Open <ArrowRight size={10} />
                             </a>
                           </div>
                         </div>
@@ -1688,18 +1914,27 @@ function QuizPage() {
 
   return (
     <PageTransition>
-      <PageHeader kicker={`Quiz · Module ${moduleIndex + 1}`} title="Check your understanding." />
-      <div className="premium-card mx-auto max-w-3xl p-6 space-y-6">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <Trophy size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Assessment Arena</p>
+          <h1 className="text-2xl font-extrabold text-white">Module {moduleIndex + 1} Quiz</h1>
+        </div>
+      </div>
+
+      <div className="bg-[#111827]/40 border border-white/5 mx-auto max-w-3xl p-6 sm:p-8 rounded-3xl backdrop-blur-xl space-y-6">
         {score === null ? (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-400">Question {qIndex + 1} of {quiz.length}</span>
-              <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
-                <div style={{ width: `${((qIndex + 1) / quiz.length) * 100}%` }} className="h-full bg-brand-primary" />
+              <span className="text-xs font-bold text-slate-400">Question {qIndex + 1} of {quiz.length}</span>
+              <div className="h-1.5 w-32 overflow-hidden rounded-full bg-white/5">
+                <div style={{ width: `${((qIndex + 1) / quiz.length) * 100}%` }} className="h-full bg-indigo-500" />
               </div>
             </div>
             
-            <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">{currentQuestion.question}</h2>
+            <h2 className="text-xl font-bold text-white">{currentQuestion.question}</h2>
             
             <div className="mt-6 space-y-3">
               {currentQuestion.options.map((option) => {
@@ -1707,38 +1942,54 @@ function QuizPage() {
                 const isCorrect = option === currentQuestion.answer;
                 const buttonStyle = showExplanation
                   ? isCorrect
-                    ? 'border-emerald-300 bg-emerald-50/50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400'
+                    ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-400'
                     : isSelected
-                      ? 'border-rose-300 bg-rose-50/50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-400'
-                      : 'border-white/70 bg-white/70 text-slate-400 dark:border-white/10 dark:bg-slate-950/70'
+                      ? 'border-rose-500/30 bg-rose-500/5 text-rose-400'
+                      : 'border-white/5 bg-transparent text-slate-500'
                   : isSelected
-                    ? 'border-violet-300 bg-gradient-to-r from-indigo-50 to-fuchsia-50 text-brand-primary dark:bg-indigo-500/10'
-                    : 'border-white/70 bg-white/70 text-slate-700 dark:border-white/10 dark:bg-slate-950/70 dark:text-slate-200';
+                    ? 'border-indigo-500/30 bg-indigo-500/5 text-indigo-400 shadow-glow'
+                    : 'border-white/5 bg-transparent text-slate-300 hover:bg-white/5';
                 
                 return (
-                  <motion.button key={option} disabled={showExplanation} whileHover={{ scale: 1.01 }} onClick={() => handleSelect(option)} className={cn('w-full rounded-2xl border p-4 text-left font-semibold shadow-sm backdrop-blur-xl transition', buttonStyle)}>
-                    {option}
+                  <motion.button 
+                    key={option} 
+                    disabled={showExplanation} 
+                    whileHover={{ scale: 1.005 }} 
+                    onClick={() => handleSelect(option)} 
+                    className={cn('w-full rounded-2xl border p-4 text-left font-semibold text-sm shadow-sm transition flex items-center justify-between', buttonStyle)}
+                  >
+                    <span>{option}</span>
+                    {showExplanation && isCorrect && <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full">Correct</span>}
+                    {showExplanation && isSelected && !isCorrect && <span className="text-xs bg-rose-500/10 text-rose-400 px-2.5 py-0.5 rounded-full">Incorrect</span>}
                   </motion.button>
                 );
               })}
             </div>
 
             {showExplanation && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 dark:bg-white/5 dark:border-white/5 text-sm space-y-2">
-                <p className="font-bold text-slate-800 dark:text-slate-200">Explanation</p>
-                <p className="text-slate-600 dark:text-slate-300">{currentQuestion.explanation}</p>
-                <button onClick={handleNext} className="btn-primary py-2 mt-2">
-                  {qIndex < quiz.length - 1 ? 'Next Question' : 'Finish Quiz'}
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-white/5 border border-white/5 text-xs space-y-3">
+                <div className="flex items-center gap-1.5 text-indigo-400 font-bold">
+                  <Sparkles size={14} />
+                  <span>Curriculum Insight</span>
+                </div>
+                <p className="text-slate-300 leading-relaxed">{currentQuestion.explanation}</p>
+                <button onClick={handleNext} className="btn-primary py-2 px-4 font-bold text-xs">
+                  {qIndex < quiz.length - 1 ? 'Next Question' : 'Complete Quiz'}
                 </button>
               </motion.div>
             )}
           </>
         ) : (
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-6 space-y-4">
-            <Trophy size={48} className="mx-auto text-amber-500" />
-            <h2 className="text-3xl font-extrabold text-slate-950 dark:text-white">Quiz Completed!</h2>
-            <p className="text-xl text-slate-500">Your Score: <span className="font-black text-brand-success">{score}%</span></p>
-            <button onClick={() => navigate('/course')} className="btn-primary py-2.5 mt-4">Back to Roadmap</button>
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-8 space-y-4">
+            <div className="h-16 w-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-4 animate-bounce">
+              <Trophy size={32} />
+            </div>
+            <h2 className="text-2xl font-extrabold text-white">Assessment Complete!</h2>
+            <p className="text-sm text-slate-400 max-w-xs mx-auto">You scored {score}% correct. Continue on your journey to master this material.</p>
+            <div className="text-3xl font-black text-indigo-400 pt-2">{score}%</div>
+            <button onClick={() => navigate('/course')} className="btn-primary py-2.5 px-6 text-xs font-bold shadow-glow mt-4">
+              Return to Curriculum
+            </button>
           </motion.div>
         )}
       </div>
@@ -1764,40 +2015,66 @@ function ProjectsPage() {
 
   return (
     <PageTransition>
-      <PageHeader kicker={`Projects · Module ${moduleIndex + 1}`} title="Turn concepts into portfolio proof." />
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <Rocket size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Project Labs</p>
+          <h1 className="text-2xl font-extrabold text-white">Practical Coding Challenges</h1>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {activeProjects.map((project) => (
-          <motion.article key={project.title} whileHover={{ y: -6, scale: 1.01 }} className="premium-card p-6 flex flex-col justify-between">
-            <div className="space-y-4">
+          <motion.article 
+            key={project.title} 
+            whileHover={{ y: -4 }} 
+            className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl flex flex-col justify-between"
+          >
+            <div className="space-y-5">
               <div className="flex justify-between items-center">
-                <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-brand-primary dark:bg-indigo-500/10">{project.type}</span>
+                <span className="rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-xs font-bold text-indigo-400">{project.type}</span>
                 <span className="text-xs font-semibold text-slate-400">{project.difficulty}</span>
               </div>
-              <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">{project.title}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{project.description}</p>
+              <h2 className="text-lg font-bold text-white leading-snug">{project.title}</h2>
+              <p className="text-xs text-slate-400 leading-relaxed">{project.description}</p>
               
-              <div className="space-y-2">
-                <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Objectives</p>
-                <ul className="list-disc pl-4 text-xs text-slate-600 dark:text-slate-300 space-y-1">
-                  {project.objectives.map(obj => <li key={obj}>{obj}</li>)}
-                </ul>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Technologies Used</p>
-                <div className="flex flex-wrap gap-1">
-                  {project.technologies.map(tech => (
-                    <span key={tech} className="bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300 text-xs px-2 py-0.5 rounded">
-                      {tech}
-                    </span>
-                  ))}
+              {project.objectives && project.objectives.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Objectives</p>
+                  <ul className="grid gap-1.5 text-xs text-slate-300">
+                    {project.objectives.map((obj, i) => (
+                      <li key={i} className="flex gap-2 items-center">
+                        <span className="w-1 h-1 rounded-full bg-indigo-400" />
+                        <span className="truncate">{obj}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              )}
+
+              {project.technologies && project.technologies.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tech Stack</p>
+                  <div className="flex flex-wrap gap-1">
+                    {project.technologies.map(tech => (
+                      <span key={tech} className="bg-white/5 border border-white/5 text-[10px] font-semibold text-slate-300 px-2 py-0.5 rounded">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="pt-6 border-t border-slate-100 dark:border-white/10 mt-6">
-              <button onClick={() => alert("Checklist:\n" + project.checklist.join("\n"))} className="btn-secondary w-full py-2">
-                Start Project / View Checklist
+            <div className="pt-5 border-t border-white/5 mt-6">
+              <button 
+                onClick={() => alert("Project Checklist:\n\n" + project.checklist.map((c, i) => `${i + 1}. [ ] ${c}`).join("\n"))} 
+                className="btn-primary w-full py-2.5 text-xs font-bold shadow-glow flex items-center justify-center gap-1.5"
+              >
+                <Code2 size={14} />
+                Start Lab & Checklist
               </button>
             </div>
           </motion.article>
@@ -1829,35 +2106,70 @@ function InterviewPage() {
 
   return (
     <PageTransition>
-      <PageHeader kicker="Interview Preparation" title="Practice technical, HR, scenario-based, and system design questions." />
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <BrainCircuit size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Interview Simulator</p>
+          <h1 className="text-2xl font-extrabold text-white">Mock Interview Simulator</h1>
+        </div>
+      </div>
       
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Category filters */}
+      <div className="flex flex-wrap gap-2 mb-8 bg-[#111827]/40 border border-white/5 p-2 rounded-2xl backdrop-blur-xl w-fit">
         {['Technical', 'Coding', 'HR', 'Scenario', 'System Design'].map((tab) => (
-          <button key={tab} onClick={() => { setActiveTab(tab); setOpen(0); }} className={cn('px-4 py-2 rounded-2xl font-bold text-sm transition', activeTab === tab ? 'bg-indigo-600 text-white shadow-glow' : 'bg-white/50 text-slate-600 dark:bg-white/5 dark:text-slate-300')}>
+          <button 
+            key={tab} 
+            onClick={() => { setActiveTab(tab); setOpen(0); }} 
+            className={cn(
+              'px-4 py-2 rounded-xl font-bold text-xs transition-all duration-300', 
+              activeTab === tab 
+                ? 'bg-indigo-500 text-white shadow-glow' 
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            )}
+          >
             {tab}
           </button>
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredQuestions.map((q, index) => (
-          <motion.article key={q.question} whileHover={{ y: -6, scale: 1.01 }} className="premium-card p-6 flex flex-col justify-between">
+          <motion.article 
+            key={q.question} 
+            whileHover={{ y: -4 }} 
+            className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl flex flex-col justify-between"
+          >
             <div>
               <div className="flex justify-between items-center mb-4">
-                <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-brand-primary dark:bg-indigo-500/10">{q.type}</span>
-                <span className="text-xs font-bold text-slate-400">{q.difficulty}</span>
+                <span className="rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-xs font-bold text-indigo-400">{q.type}</span>
+                <span className="text-xs font-semibold text-slate-500">{q.difficulty}</span>
               </div>
-              <h2 className="text-[22px] font-bold text-slate-950 dark:text-white leading-snug">{q.question}</h2>
-              <p className="text-xs text-slate-400 mt-2">Hint: {q.hint}</p>
+              <h2 className="text-base font-bold text-white leading-relaxed">{q.question}</h2>
+              {q.hint && (
+                <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-400">
+                  <Sparkles size={13} className="text-amber-500" />
+                  <span>Hint: {q.hint}</span>
+                </div>
+              )}
             </div>
             
-            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/10">
-              <button onClick={() => setOpen(open === index ? -1 : index)} className="btn-secondary ripple w-full py-2">
-                {open === index ? 'Hide Answer' : 'Reveal Expected Answer'}
+            <div className="mt-6 pt-4 border-t border-white/5">
+              <button 
+                onClick={() => setOpen(open === index ? -1 : index)} 
+                className="btn-secondary w-full py-2.5 text-xs font-bold"
+              >
+                {open === index ? 'Hide Explanation' : 'Reveal Expected Answer'}
               </button>
               <AnimatePresence>
                 {open === index && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-white/5 text-sm text-slate-600 dark:text-slate-300">
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    exit={{ opacity: 0, height: 0 }} 
+                    className="mt-3 p-4 rounded-2xl bg-white/5 border border-white/5 text-xs text-slate-300 leading-relaxed"
+                  >
                     {q.expected_answer}
                   </motion.div>
                 )}
@@ -1867,7 +2179,7 @@ function InterviewPage() {
         ))}
         {filteredQuestions.length === 0 && (
           <div className="lg:col-span-3 text-center py-12">
-            <p className="text-slate-500">No questions available in this category for the current path.</p>
+            <p className="text-xs text-slate-500">No mock questions generated in the {activeTab} track yet.</p>
           </div>
         )}
       </div>
@@ -1885,11 +2197,19 @@ function AnalyticsPage() {
   if (!path) {
     return (
       <PageTransition>
-        <PageHeader kicker="Learning Analytics" title="Analytics unlock after your first learning actions." />
-        <div className="premium-card p-8 text-center max-w-xl mx-auto space-y-4">
-          <Layers3 className="mx-auto text-brand-primary" size={32} />
-          <h2 className="text-2xl font-bold text-slate-950 dark:text-white">No Data Yet</h2>
-          <p className="text-slate-500 text-sm">Complete your first lesson to unlock interactive metrics and skill graph visualizations.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+            <LineChart size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Performance Engine</p>
+            <h1 className="text-2xl font-extrabold text-white">Learning Analytics</h1>
+          </div>
+        </div>
+        <div className="bg-[#111827]/40 border border-white/5 p-8 text-center max-w-xl mx-auto rounded-3xl backdrop-blur-xl space-y-4">
+          <Layers3 className="mx-auto text-indigo-400" size={32} />
+          <h2 className="text-xl font-bold text-white">No Analytics Available Yet</h2>
+          <p className="text-slate-400 text-xs">Complete your first lesson to unlock interactive metrics and skill graph visualizations.</p>
         </div>
       </PageTransition>
     );
@@ -1900,41 +2220,69 @@ function AnalyticsPage() {
 
   return (
     <PageTransition>
-      <PageHeader kicker="Analytics Dashboard" title="Track your learning performance." />
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <LineChart size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Performance Engine</p>
+          <h1 className="text-2xl font-extrabold text-white">Learning Analytics</h1>
+        </div>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
-        
         {/* Progress Chart card */}
-        <div className="premium-card p-6 lg:col-span-2 space-y-6">
-          <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Roadmap Completion & Metrics</h2>
-          <div className="space-y-4">
+        <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl lg:col-span-2 space-y-6">
+          <h2 className="text-lg font-bold text-white">Roadmap Completion & Core Metrics</h2>
+          <div className="space-y-5">
             <div>
-              <div className="flex justify-between mb-1 text-sm font-semibold">
-                <span>Overall Path Progress</span>
-                <span>{progress}%</span>
+              <div className="flex justify-between mb-2 text-xs font-bold">
+                <span className="text-slate-400">Overall Path Progress</span>
+                <span className="text-indigo-400">{progress}%</span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
-                <div style={{ width: `${progress}%` }} className="h-full bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-400" />
+              <div className="h-2.5 overflow-hidden rounded-full bg-white/5">
+                <div style={{ width: `${progress}%` }} className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400" />
               </div>
             </div>
             
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 dark:bg-white/5 dark:border-white/5">
-                <p className="text-xs font-bold text-slate-400 uppercase">Strong Topics</p>
-                <p className="mt-2 font-bold text-slate-800 dark:text-slate-100">{path.topic} Foundations</p>
+            <div className="grid gap-4 sm:grid-cols-2 pt-2">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Strongest Area</p>
+                <p className="text-sm font-bold text-white">{path.topic} Fundamentals</p>
               </div>
-              <div className="p-4 rounded-2xl bg-fuchsia-50/50 border border-fuchsia-100 dark:bg-white/5 dark:border-white/5">
-                <p className="text-xs font-bold text-slate-400 uppercase">Focus Recommendation</p>
-                <p className="mt-2 font-bold text-slate-800 dark:text-slate-100">Review capstone tasks and project checklists</p>
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Focus Target</p>
+                <p className="text-sm font-bold text-white">Capstone checklist items & code reviews</p>
+              </div>
+            </div>
+
+            {/* Weekly performance list */}
+            <div className="space-y-3 pt-3 border-t border-white/5">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Weekly Activity Breakdown</p>
+              <div className="grid grid-cols-7 gap-2 text-center text-xs">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                  <div key={day} className="space-y-2">
+                    <div className="h-16 bg-white/5 rounded-lg relative overflow-hidden flex items-end">
+                      <div 
+                        style={{ height: i % 2 === 0 ? '60%' : i % 3 === 0 ? '90%' : '20%' }} 
+                        className="w-full bg-indigo-500/50 rounded-b-lg" 
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-medium">{day}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
         {/* Dynamic skills ring card */}
-        <div className="premium-card p-6 flex flex-col items-center justify-center text-center">
+        <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl flex flex-col items-center justify-center text-center space-y-4">
           <ProgressRing value={progress} />
-          <p className="font-bold text-slate-800 dark:text-slate-200 mt-4">Skills Verified</p>
-          <p className="text-xs text-slate-400">Calculated from complete learning modules.</p>
+          <div>
+            <p className="font-bold text-white">Skills Verified</p>
+            <p className="text-xs text-slate-400 mt-1">Calculated from completed roadmap modules.</p>
+          </div>
         </div>
       </div>
     </PageTransition>
@@ -2002,38 +2350,50 @@ function SettingsPage() {
 
   return (
     <PageTransition>
-      <PageHeader kicker="User Settings" title="Manage your AI learning preferences." />
-      <form onSubmit={handleSave} className="premium-card p-6 sm:p-8 max-w-3xl space-y-6">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
+          <Settings size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Control Panel</p>
+          <h1 className="text-2xl font-extrabold text-white">Account Settings</h1>
+        </div>
+      </div>
+
+      <form onSubmit={handleSave} className="bg-[#111827]/40 border border-white/5 p-6 sm:p-8 max-w-3xl rounded-3xl backdrop-blur-xl space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
-          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
+          <label className="group block rounded-2xl border border-white/5 bg-[#111827]/60 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-indigo-500/30">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Full Name</span>
-            <input name="full_name" required value={profile.full_name || ''} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white" />
+            <input name="full_name" required value={profile.full_name || ''} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none text-white placeholder:text-slate-500" />
           </label>
-          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
+          <label className="group block rounded-2xl border border-white/5 bg-[#111827]/60 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-indigo-500/30">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Target Career Role</span>
-            <input name="target_role" required value={profile.target_role || ''} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white" />
+            <input name="target_role" required value={profile.target_role || ''} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none text-white placeholder:text-slate-500" />
           </label>
-          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Daily Study Hours</span>
-            <select name="daily_study_hours" value={profile.daily_study_hours || '2'} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white">
+          <label className="group block rounded-2xl border border-white/5 bg-[#111827]/60 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-indigo-500/30">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400 block mb-1">Daily Study Hours</span>
+            <select name="daily_study_hours" value={profile.daily_study_hours || '2'} onChange={handleChange} className="w-full bg-[#111827] text-white font-semibold outline-none border border-white/5 rounded-xl px-2 py-2 mt-1 focus:border-indigo-500/30">
               <option value="1">1 Hour / day</option>
               <option value="2">2 Hours / day</option>
               <option value="3">3 Hours / day</option>
               <option value="4">4+ Hours / day</option>
             </select>
           </label>
-          <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 dark:border-white/10 dark:bg-slate-950/70">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Learning Style</span>
-            <select name="learning_style" value={profile.learning_style || 'Project-based'} onChange={handleChange} className="mt-2 w-full bg-transparent font-semibold outline-none dark:text-white">
+          <label className="group block rounded-2xl border border-white/5 bg-[#111827]/60 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-indigo-500/30">
+            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400 block mb-1">Learning Style</span>
+            <select name="learning_style" value={profile.learning_style || 'Project-based'} onChange={handleChange} className="w-full bg-[#111827] text-white font-semibold outline-none border border-white/5 rounded-xl px-2 py-2 mt-1 focus:border-indigo-500/30">
               <option value="Project-based">Project-based (sprints & builders)</option>
               <option value="Theory-based">Theory-heavy (comprehensive details)</option>
               <option value="Hybrid">Hybrid (mixed concepts & practice)</option>
             </select>
           </label>
         </div>
-        <button type="submit" disabled={updating} className="btn-primary py-2.5 px-6">
-          {updating ? 'Saving...' : 'Save Settings'}
-        </button>
+
+        <div className="pt-4 border-t border-white/5 flex justify-end">
+          <button type="submit" disabled={updating} className="btn-primary py-3 px-6 font-bold text-xs shadow-glow">
+            {updating ? 'Saving Changes...' : 'Save Preferences'}
+          </button>
+        </div>
       </form>
     </PageTransition>
   );
