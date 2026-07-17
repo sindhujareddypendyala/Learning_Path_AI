@@ -21,3 +21,30 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+from jose import jwt, JWTError
+from fastapi import HTTPException, status
+from backend.models.user import User
+
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
+    """
+    Dependency that decodes the incoming JWT token, validates it, and fetches the
+    corresponding user from the database. Raises 401 if validation or retrieval fails.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
