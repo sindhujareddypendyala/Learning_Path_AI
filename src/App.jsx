@@ -35,8 +35,16 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { cn } from './lib/utils';
+
+const getSavedPath = () => {
+  try {
+    const data = localStorage.getItem('learnpath-generated');
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    return null;
+  }
+};
 
 const modules = [
   { title: 'Foundations and Mental Models', difficulty: 'Beginner', duration: '2h 40m', progress: 0 },
@@ -409,10 +417,53 @@ function AuthLayout({ mode }) {
   const navigate = useNavigate();
   const isLogin = mode === 'login';
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    localStorage.setItem('learnpath-auth', 'true');
-    navigate('/profile');
+    const data = new FormData(event.currentTarget);
+    const email = data.get('email');
+    const password = data.get('password');
+
+    try {
+      if (isLogin) {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || 'Login failed');
+          return;
+        }
+        const result = await res.json();
+        localStorage.setItem('learnpath-auth', 'true');
+        localStorage.setItem('learnpath-token', result.access_token);
+        localStorage.setItem('learnpath-user-email', result.user.email);
+        navigate('/profile');
+      } else {
+        const name = data.get('name');
+        const confirmPassword = data.get('confirmPassword');
+        if (password !== confirmPassword) {
+          alert('Passwords do not match');
+          return;
+        }
+        const res = await fetch('/api/v1/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || 'Registration failed');
+          return;
+        }
+        alert('Registration successful! Please log in.');
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error, please try again.');
+    }
   }
 
   return (
@@ -457,10 +508,10 @@ function AuthLayout({ mode }) {
                 {isLogin ? 'Authenticate to continue to first-time profile creation.' : 'Sign up to begin your personalized learning setup.'}
               </p>
               <form onSubmit={submit} className="mt-7 space-y-4">
-                {!isLogin && <AuthField label="Full Name" icon={UserRound} placeholder="Sindhu Rao" />}
-                <AuthField label="Email" icon={Mail} type="email" placeholder="you@example.com" />
-                <AuthField label="Password" icon={LockKeyhole} type="password" placeholder="••••••••" />
-                {!isLogin && <AuthField label="Confirm Password" icon={ShieldCheck} type="password" placeholder="••••••••" />}
+                {!isLogin && <AuthField label="Full Name" name="name" icon={UserRound} placeholder="Sindhu Rao" />}
+                <AuthField label="Email" name="email" icon={Mail} type="email" placeholder="you@example.com" />
+                <AuthField label="Password" name="password" icon={LockKeyhole} type="password" placeholder="••••••••" />
+                {!isLogin && <AuthField label="Confirm Password" name="confirmPassword" icon={ShieldCheck} type="password" placeholder="••••••••" />}
                 {isLogin && (
                   <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                     <label className="flex items-center gap-2 font-semibold text-slate-600 dark:text-slate-300">
@@ -491,13 +542,13 @@ function AuthLayout({ mode }) {
   );
 }
 
-function AuthField({ label, icon: Icon, type = 'text', placeholder }) {
+function AuthField({ label, name, icon: Icon, type = 'text', placeholder }) {
   return (
     <label className="group block rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-xl transition focus-within:border-violet-300 focus-within:shadow-glow dark:border-white/10 dark:bg-slate-950/70">
       <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
         <Icon size={15} /> {label}
       </span>
-      <input type={type} placeholder={placeholder} className="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-300 dark:text-white" />
+      <input type={type} name={name} required placeholder={placeholder} className="mt-2 w-full bg-transparent text-base font-semibold text-slate-950 outline-none placeholder:text-slate-300 dark:text-white" />
     </label>
   );
 }
@@ -562,15 +613,66 @@ function LoadingPage() {
   const navigate = useNavigate();
   const agents = ['Profile Agent', 'Curriculum Agent', 'Content Agent', 'Knowledge Agent', 'Assessment Agent', 'Projects Agent', 'Interview Agent', 'Learning Analytics'];
   const [active, setActive] = useState(0);
+  const [apiDone, setApiDone] = useState(false);
+
+  useEffect(() => {
+    const topic = localStorage.getItem('learnpath-topic') || 'AI frontend engineering';
+    
+    fetch('/api/v1/learning-path', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(localStorage.getItem('learnpath-token') ? { 'Authorization': `Bearer ${localStorage.getItem('learnpath-token')}` } : {})
+      },
+      body: JSON.stringify({ topic })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('API failed');
+        return res.json();
+      })
+      .then(data => {
+        localStorage.setItem('learnpath-generated', JSON.stringify(data));
+        setApiDone(true);
+      })
+      .catch(err => {
+        console.error(err);
+        const fallback = {
+          topic,
+          modules: [
+            { title: 'Foundations and Mental Models', difficulty: 'Beginner', duration: '2h 40m', progress: 0 },
+            { title: 'Applied Practice Lab', difficulty: 'Intermediate', duration: '4h 10m', progress: 0 },
+            { title: 'Portfolio Project Sprint', difficulty: 'Advanced', duration: '6h 20m', progress: 0 },
+            { title: 'Interview and Mastery Review', difficulty: 'Advanced', duration: '3h 15m', progress: 0 },
+          ],
+          projects: [
+            { title: 'Build a study recommender', difficulty: 'Intermediate', duration: '4h', skills: ['Embeddings', 'Ranking', 'UX'] },
+            { title: 'Train a tiny classifier', difficulty: 'Beginner', duration: '2h', skills: ['Python', 'Metrics', 'Validation'] },
+            { title: 'Deploy an interview coach', difficulty: 'Advanced', duration: '8h', skills: ['Agents', 'Prompts', 'Evaluation'] }
+          ],
+          interview: [
+            'Explain your learning project architecture.',
+            'Tell me how you debug ambiguous requirements.',
+            'Design a course recommendation system.'
+          ]
+        };
+        localStorage.setItem('learnpath-generated', JSON.stringify(fallback));
+        setApiDone(true);
+      });
+  }, []);
 
   useEffect(() => {
     if (active < agents.length - 1) {
       const timer = setTimeout(() => setActive((value) => value + 1), 650);
       return () => clearTimeout(timer);
     }
-    const done = setTimeout(() => navigate('/learning'), 900);
-    return () => clearTimeout(done);
-  }, [active, agents.length, navigate]);
+  }, [active, agents.length]);
+
+  useEffect(() => {
+    if (active === agents.length - 1 && apiDone) {
+      const done = setTimeout(() => navigate('/learning'), 900);
+      return () => clearTimeout(done);
+    }
+  }, [active, agents.length, apiDone, navigate]);
 
   return (
     <CenteredShell>
@@ -697,9 +799,19 @@ function HomeDashboard() {
 }
 
 function GenerateCoursePage() {
+  const navigate = useNavigate();
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const topic = data.get('Topic') || 'AI frontend engineering';
+    localStorage.setItem('learnpath-topic', topic);
+    navigate('/loading');
+  }
+
   return (
     <PageTransition>
-      <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
         <PremiumCard className="p-6 sm:p-8">
           <p className="font-semibold text-brand-primary">Generate Course</p>
           <h1 className="mt-2 text-4xl font-extrabold leading-tight text-slate-950 dark:text-white">Create your personalized learning path.</h1>
@@ -708,11 +820,11 @@ function GenerateCoursePage() {
             {['Topic', 'Primary Outcome', 'Weekly Schedule', 'Depth'].map((field) => (
               <label key={field} className="rounded-2xl border border-white/70 bg-white/70 p-4 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/70">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">{field}</span>
-                <input placeholder={field === 'Topic' ? 'AI frontend engineering' : ' '} className="mt-2 w-full bg-transparent font-semibold outline-none placeholder:text-slate-300 dark:text-white" />
+                <input name={field} placeholder={field === 'Topic' ? 'AI frontend engineering' : ' '} className="mt-2 w-full bg-transparent font-semibold outline-none placeholder:text-slate-300 dark:text-white" />
               </label>
             ))}
           </div>
-          <PrimaryButton to="/loading" className="mt-7">Generate Course <ArrowRight size={18} /></PrimaryButton>
+          <button type="submit" className="btn-primary ripple mt-7">Generate Course <ArrowRight size={18} /></button>
         </PremiumCard>
         <PremiumCard className="p-6">
           <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Agent Plan</h2>
@@ -725,18 +837,20 @@ function GenerateCoursePage() {
             ))}
           </div>
         </PremiumCard>
-      </div>
+      </form>
     </PageTransition>
   );
 }
 
 function LearningDashboard() {
+  const savedPath = getSavedPath();
+  const topic = savedPath ? savedPath.topic : 'AI Frontend Engineering';
   return (
     <PageTransition>
       <div className="grid gap-5 xl:grid-cols-[1.35fr_0.85fr]">
         <PremiumCard className="p-6 sm:p-8">
           <p className="font-semibold text-brand-primary">Learning Dashboard</p>
-          <h1 className="mt-2 text-4xl font-extrabold leading-tight text-slate-950 dark:text-white">AI Frontend Engineering Path</h1>
+          <h1 className="mt-2 text-4xl font-extrabold leading-tight text-slate-950 dark:text-white">{topic} Path</h1>
           <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">Your first course is generated. Continue into the roadmap, lessons, projects, and interview preparation.</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link to="/course" className="btn-primary ripple">Open Course <Play size={17} /></Link>
@@ -786,11 +900,15 @@ function QuickActions() {
 
 function CoursePage() {
   const [expanded, setExpanded] = useState(0);
+  const savedPath = getSavedPath();
+  const activeModules = savedPath ? savedPath.modules : modules;
+  const topic = savedPath ? savedPath.topic : 'AI Frontend Engineering';
+
   return (
     <PageTransition>
-      <PageHeader kicker="Course Roadmap" title="AI Frontend Engineering roadmap." />
+      <PageHeader kicker="Course Roadmap" title={`${topic} roadmap.`} />
       <div className="space-y-5">
-        {modules.map((module, index) => (
+        {activeModules.map((module, index) => (
           <motion.article key={module.title} layout whileHover={{ y: -4 }} className="premium-card overflow-hidden">
             <button onClick={() => setExpanded(expanded === index ? -1 : index)} className="flex w-full items-center justify-between gap-4 p-5 text-left">
               <div className="flex items-center gap-4">
@@ -887,7 +1005,8 @@ function QuizPage() {
 }
 
 function ProjectsPage() {
-  const projects = [
+  const savedPath = getSavedPath();
+  const activeProjects = savedPath ? savedPath.projects.map(p => [p.title, p.difficulty, p.duration, p.skills]) : [
     ['Build a study recommender', 'Intermediate', '4h', ['Embeddings', 'Ranking', 'UX']],
     ['Train a tiny classifier', 'Beginner', '2h', ['Python', 'Metrics', 'Validation']],
     ['Deploy an interview coach', 'Advanced', '8h', ['Agents', 'Prompts', 'Evaluation']],
@@ -896,7 +1015,7 @@ function ProjectsPage() {
     <PageTransition>
       <PageHeader kicker="Projects" title="Turn concepts into portfolio proof." />
       <div className="grid gap-5 lg:grid-cols-3">
-        {projects.map(([title, difficulty, time, skills]) => (
+        {activeProjects.map(([title, difficulty, time, skills]) => (
           <motion.article key={title} whileHover={{ y: -6, scale: 1.01 }} className="premium-card p-6">
             <p className="text-sm font-bold text-brand-primary">{difficulty} · {time}</p>
             <h2 className="mt-3 text-[22px] font-bold text-slate-950 dark:text-white">{title}</h2>
@@ -912,14 +1031,19 @@ function ProjectsPage() {
 
 function InterviewPage() {
   const [open, setOpen] = useState(0);
-  const questions = ['Explain your learning project architecture.', 'Tell me how you debug ambiguous requirements.', 'Design a course recommendation system.'];
+  const savedPath = getSavedPath();
+  const activeQuestions = savedPath ? savedPath.interview : [
+    'Explain your learning project architecture.',
+    'Tell me how you debug ambiguous requirements.',
+    'Design a course recommendation system.'
+  ];
   return (
     <PageTransition>
       <PageHeader kicker="Interview Preparation" title="Practice technical, HR, and system thinking questions." />
       <div className="grid gap-5 lg:grid-cols-3">
-        {questions.map((question, index) => (
+        {activeQuestions.map((question, index) => (
           <motion.article key={question} whileHover={{ y: -6, scale: 1.01 }} className="premium-card p-6">
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-brand-primary dark:bg-indigo-500/10">{['Technical', 'HR', 'System'][index]}</span>
+            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-brand-primary dark:bg-indigo-500/10">{['Technical', 'HR', 'System'][index % 3]}</span>
             <h2 className="mt-4 text-[22px] font-bold text-slate-950 dark:text-white">{question}</h2>
             <button onClick={() => setOpen(open === index ? -1 : index)} className="btn-secondary ripple mt-6">Reveal Answer</button>
             <AnimatePresence>
