@@ -611,7 +611,8 @@ function ProfilePage() {
       if (!res.ok) throw new Error("Failed to save profile");
       localStorage.setItem('learnpath-profile', 'true');
       localStorage.setItem('learnpath-user-name', profile.full_name);
-      navigate('/dashboard');
+      localStorage.setItem('learnpath-topic', profile.learning_goal || profile.target_role || 'AI Engineering');
+      navigate('/loading');
     } catch (err) {
       alert(err.message);
     } finally {
