@@ -86,7 +86,9 @@ const rise = {
 };
 
 function useDarkMode() {
-  const [dark, setDark] = useState(() => localStorage.getItem('learnpath-theme') === 'dark');
+  // Start every learner in the brighter course experience; the toggle still
+  // lets them opt into dark mode whenever they prefer it.
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -324,17 +326,18 @@ function Landing({ dark, setDark }) {
 
   return (
     <PageTransition>
-      <div className="launch-bg relative grid min-h-screen overflow-hidden px-4 py-8" {...pointer}>
+      <div className="launch-bg relative min-h-screen overflow-hidden px-4 py-6" {...pointer}>
         <div className="aurora left-[8%] top-[14%] h-64 w-64 rounded-full bg-indigo-300/45" />
         <div className="aurora right-[10%] top-[18%] h-72 w-72 rounded-full bg-cyan-300/35 [animation-delay:1.2s]" />
         <div className="aurora bottom-[16%] left-[36%] h-72 w-72 rounded-full bg-amber-200/45 [animation-delay:2.4s]" />
         <div className="particle-field" />
 
-        <div className="absolute right-5 top-5 z-20">
-          <ThemeToggle dark={dark} setDark={setDark} />
-        </div>
+        <header className="section relative z-20 flex items-center justify-between py-2">
+          <BrandLogo />
+          <div className="flex items-center gap-4"><Link to="/login" className="hidden text-sm font-bold text-slate-600 hover:text-indigo-600 sm:block dark:text-slate-300">Sign in</Link><ThemeToggle dark={dark} setDark={setDark} /></div>
+        </header>
 
-        <main className="relative z-10 mx-auto grid w-full max-w-3xl place-items-center text-center">
+        <main className="relative z-10 mx-auto grid w-full max-w-3xl place-items-center pb-20 pt-16 text-center sm:pt-20">
           <motion.div
             initial={{ opacity: 0, scale: 0.82, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
@@ -369,7 +372,21 @@ function Landing({ dark, setDark }) {
           </motion.div>
         </main>
 
-        <Footer minimal />
+        <section className="section relative z-10 pb-20">
+          <div className="rounded-[2rem] border border-indigo-100 bg-white/70 p-7 text-left shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/65 sm:p-10">
+            <p className="text-xs font-extrabold uppercase tracking-[.16em] text-indigo-600">How LearnPath works</p>
+            <h2 className="mt-3 max-w-xl text-3xl font-black tracking-tight text-slate-950 dark:text-white">From a single goal to a learning journey made for you.</h2>
+            <div className="mt-8 grid gap-5 md:grid-cols-3">
+              {[{ n: '01', title: 'Tell us your goal', text: 'Describe the skill, role, or project you want to tackle.', icon: Wand2 }, { n: '02', title: 'Meet your path', text: 'AI agents build a thoughtful learning plan around you.', icon: Layers3 }, { n: '03', title: 'Learn by doing', text: 'Study, practice, and build work you are proud to show.', icon: Rocket }].map((item) => <div key={item.n} className="learning-step"><span className="text-xs font-black text-indigo-500">{item.n}</span><item.icon className="mt-5 text-violet-600" size={27} /><h3 className="mt-4 text-lg font-extrabold text-slate-950 dark:text-white">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.text}</p></div>)}
+            </div>
+          </div>
+        </section>
+        <section className="section relative z-10 pb-20">
+          <div className="text-center"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-indigo-600">Your AI learning team</p><h2 className="mt-3 text-3xl font-black text-slate-950 dark:text-white">Everything you need to stay in flow.</h2></div>
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">{[{ title: 'Smart curriculum', text: 'A clear path from first concept to confident practice.', icon: BookOpen, color: 'bg-indigo-100 text-indigo-600' }, { title: 'Practice that sticks', text: 'Quizzes, examples, and notes at the right moment.', icon: Code2, color: 'bg-cyan-100 text-cyan-600' }, { title: 'Portfolio projects', text: 'Turn learning into work you can proudly show.', icon: Rocket, color: 'bg-orange-100 text-orange-600' }, { title: 'Interview coach', text: 'Build confidence before the conversation begins.', icon: BrainCircuit, color: 'bg-violet-100 text-violet-600' }].map((item) => <div key={item.title} className="feature-card"><span className={cn('grid h-12 w-12 place-items-center rounded-2xl', item.color)}><item.icon size={23} /></span><h3>{item.title}</h3><p>{item.text}</p></div>)}</div>
+        </section>
+        <section className="section relative z-10 pb-24"><div className="mx-auto max-w-3xl text-center"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-indigo-600">Questions, answered</p><h2 className="mt-3 text-3xl font-black text-slate-950 dark:text-white">Built for your next learning win.</h2><div className="mt-8 space-y-3 text-left">{[['What can I learn with LearnPath AI?', 'Any skill or career goal — from programming languages to interview-ready professional pathways.'], ['Does this replace real practice?', 'No. It puts practice at the center, with projects, quizzes, and resources alongside every lesson.'], ['Can I change my path as I learn?', 'Yes. Generate a new path whenever your goals, pace, or interests shift.']].map(([question, answer]) => <details key={question} className="faq-card"><summary>{question}<ChevronDown size={18} /></summary><p>{answer}</p></details>)}</div></div></section>
+        <Footer />
       </div>
     </PageTransition>
   );
@@ -896,7 +913,7 @@ function HomeDashboard() {
   if (loading) {
     return (
       <div className="grid h-64 place-items-center">
-        <CircleDashed size={32} className="animate-spin text-brand-primary" />
+        <CircleDashed size={32} className="animate-spin text-indigo-500" />
       </div>
     );
   }
@@ -918,36 +935,48 @@ function HomeDashboard() {
   if (!path) {
     return (
       <PageTransition>
-        <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
-          <div className="grid gap-5 xl:grid-cols-[1.35fr_0.9fr]">
-            <PremiumCard className="p-6 sm:p-8">
-              <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-fuchsia-300/30 blur-3xl" />
-              <div className="relative flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="font-semibold text-brand-primary">Generate First Course</p>
-                  <h1 className="mt-2 max-w-2xl text-4xl font-extrabold leading-tight text-slate-950 dark:text-white">
-                    Your learning journey starts here.
-                  </h1>
-                  <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
-                    You have not generated a course yet. Create your first AI-powered path to unlock real progress, lessons, analytics, projects, and interview readiness.
-                  </p>
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <PrimaryButton to="/generate">Generate Your First Course <Sparkles size={17} /></PrimaryButton>
-                    <Link to="/profile" className="btn-secondary ripple">Edit Profile</Link>
-                  </div>
-                </div>
-                <EmptyJourneyIllustration />
+        <div className="space-y-8 text-left">
+          {/* Welcome Banner */}
+          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-8 sm:p-12 rounded-[2rem] text-white shadow-glow relative overflow-hidden">
+            <div className="absolute right-0 bottom-0 top-0 w-1/3 opacity-15 hidden md:block">
+              <Sparkles className="w-full h-full text-white animate-pulse" />
+            </div>
+            <div className="relative z-10 max-w-xl space-y-4">
+              <span className="text-xs font-bold uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full w-fit">Welcome, {profile?.full_name || 'Learner'}</span>
+              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight">Start Your Customized AI Learning Path</h1>
+              <p className="text-indigo-100 text-sm leading-relaxed">
+                Unlock structured modules, curated resource libraries, quizzes, hands-on projects, and interview preparation tailored dynamically to your career preferences.
+              </p>
+              <div className="pt-2 flex flex-wrap gap-3">
+                <PrimaryButton to="/generate">Generate First Path <Sparkles size={16} /></PrimaryButton>
+                <Link to="/profile" className="btn-secondary bg-white/10 hover:bg-white/20 border-transparent text-white px-5 py-2.5 text-xs font-bold rounded-xl flex items-center justify-center">
+                  Edit Preferences
+                </Link>
               </div>
-            </PremiumCard>
-            <PremiumCard className="p-6">
-              <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Analytics</h2>
-              <div className="mt-5"><EmptyAnalyticsCard /></div>
-            </PremiumCard>
+            </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            {dynamicStats.map((stat, index) => <Metric key={stat.label} {...stat} delay={index * 0.04} />)}
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl space-y-4">
+              <h2 className="text-base font-bold text-white">Daily study analytics</h2>
+              <EmptyAnalyticsCard />
+            </div>
+            
+            <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl space-y-4 flex flex-col justify-between">
+              <div className="space-y-2">
+                <h3 className="font-bold text-white text-base">Trending Technologies</h3>
+                <p className="text-xs text-slate-400">Popular paths generated by current students:</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {['React Hooks', 'FastAPI Web APIs', 'Docker containers', 'Tailwind Systems', 'SQL queries', 'Git actions'].map(tech => (
+                  <span key={tech} className="bg-white/5 border border-white/5 text-xs text-slate-300 px-3 py-1 rounded-xl">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </PageTransition>
     );
   }
@@ -955,123 +984,86 @@ function HomeDashboard() {
   const activeModuleIndex = path.modules.findIndex(m => m.progress < 100);
   const currentModule = activeModuleIndex !== -1 ? path.modules[activeModuleIndex] : path.modules[path.modules.length - 1];
 
+  const quickStarts = [
+    { title: 'Resume Curriculum', desc: 'Continue reading the latest generated lessons.', icon: BookOpen, path: '/course', color: 'text-indigo-400 bg-indigo-500/10' },
+    { title: 'Project Labs', desc: 'Apply concepts in mock capstone assignments.', icon: Rocket, path: '/projects', color: 'text-emerald-400 bg-emerald-500/10' },
+    { title: 'Interview Simulator', desc: 'Practice custom technical Q&A.', icon: BrainCircuit, path: '/interview', color: 'text-violet-400 bg-violet-500/10' }
+  ];
+
   return (
     <PageTransition>
-      <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+      <div className="space-y-8 text-left">
+        {/* Welcome Header */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-950 dark:text-white">Welcome back, {profile?.full_name || 'Learner'} 👋</h1>
-            <p className="text-slate-500">Continue your learning journey.</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Welcome back, {profile?.full_name || 'Learner'} 👋</h1>
+            <p className="text-xs text-slate-400 mt-1">Ready to build another skill chunk today?</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link to="/generate" className="btn-primary py-2.5">Create New Path <Sparkles size={16} /></Link>
+          <Link to="/generate" className="btn-primary py-2 px-5 text-xs font-bold shadow-glow flex items-center gap-1.5 w-fit">
+            Create Custom Path <Sparkles size={14} />
+          </Link>
+        </div>
+
+        {/* Course Resume Banner */}
+        <div className="bg-gradient-to-r from-indigo-900 to-indigo-950 border border-indigo-500/20 p-6 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="flex-1 space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2.5 py-0.5 rounded-full w-fit">
+              Current Roadmap
+            </span>
+            <h2 className="text-xl font-bold text-white leading-tight">{path.topic}</h2>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300">
+              <span className="flex items-center gap-1.5"><Layers3 size={14} className="text-indigo-400" /> Current module: {currentModule.title}</span>
+              <span>•</span>
+              <span>{progress}% complete</span>
+            </div>
+            <div className="max-w-md h-1.5 overflow-hidden rounded-full bg-white/5">
+              <div style={{ width: `${progress}%` }} className="h-full bg-gradient-to-r from-indigo-500 to-violet-500" />
+            </div>
           </div>
+          <Link to="/course" className="btn-primary py-3 px-6 text-xs font-bold shrink-0 shadow-glow flex items-center gap-2">
+            Resume Course <ArrowRight size={14} />
+          </Link>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="premium-card p-6 lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Active Roadmap: {path.topic}</h2>
-              <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-brand-primary dark:bg-indigo-500/10">Active</span>
-            </div>
-            
-            <div className="flex flex-col gap-6 md:flex-row md:items-center">
-              <ProgressRing value={progress} />
-              <div className="flex-1 space-y-3">
-                <h3 className="text-xl font-bold text-slate-950 dark:text-white">Current Focus: {currentModule.title}</h3>
-                <p className="text-sm text-slate-500">Difficulty: {currentModule.difficulty} · Duration: {currentModule.duration}</p>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
-                  <div style={{ width: `${currentModule.progress}%` }} className="h-2 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-400" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-2">
-              <Link to="/course" className="btn-primary py-2.5">Open Course roadmap</Link>
-            </div>
-          </div>
-
-          <div className="premium-card p-6 space-y-4">
-            <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Quick Actions</h2>
-            <div className="grid gap-2">
-              <Link to="/course" className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold hover:border-violet-300 dark:border-white/5 dark:bg-white/5">
-                <span className="flex items-center gap-3"><BookOpen size={16} className="text-indigo-600" /> Go to Lesson</span>
-                <ChevronRight size={16} />
-              </Link>
-              <Link to="/projects" className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold hover:border-violet-300 dark:border-white/5 dark:bg-white/5">
-                <span className="flex items-center gap-3"><Rocket size={16} className="text-emerald-500" /> Complete Projects</span>
-                <ChevronRight size={16} />
-              </Link>
-              <Link to="/interview" className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/75 p-3 text-sm font-semibold hover:border-violet-300 dark:border-white/5 dark:bg-white/5">
-                <span className="flex items-center gap-3"><BrainCircuit size={16} className="text-violet-500" /> Mock Interview Prep</span>
-                <ChevronRight size={16} />
-              </Link>
+          {/* Quick Actions / Starts */}
+          <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl lg:col-span-2 space-y-4">
+            <h2 className="text-base font-bold text-white">Recommended Actions</h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {quickStarts.map((item) => (
+                <Link 
+                  key={item.title} 
+                  to={item.path} 
+                  className="p-5 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-between hover:border-indigo-500/20 hover:bg-white/10 transition space-y-4"
+                >
+                  <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center", item.color)}>
+                    <item.icon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-xs leading-normal">{item.title}</h3>
+                    <p className="text-[10px] text-slate-400 leading-normal mt-1">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="premium-card p-6 space-y-4">
-            <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Today's Goal</h2>
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-4 dark:border-sky-500/10 dark:bg-sky-500/5">
-              <p className="text-sm font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider">Active Task</p>
-              <p className="mt-2 font-semibold text-slate-800 dark:text-slate-100">Study concepts in "{currentModule.title}" and complete Lesson 1.</p>
-            </div>
-            
-            <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider pt-2">AI Recommendation</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              "We noticed you are ready to apply foundations. Check out the practice mini lab in Module {activeModuleIndex + 1} to solidify your code structure."
-            </p>
-          </div>
-
-          <div className="premium-card p-6 space-y-4">
-            <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Upcoming Tasks</h2>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/50 p-3 dark:border-white/5 dark:bg-white/0">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-violet-100 text-violet-600 text-sm font-bold dark:bg-violet-950 dark:text-violet-300">Q</span>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Module Quiz</p>
-                  <p className="text-xs text-slate-400">Quiz checkpoints for verification</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/50 p-3 dark:border-white/5 dark:bg-white/0">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-100 text-emerald-600 text-sm font-bold dark:bg-emerald-950 dark:text-emerald-300">P</span>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Mini Project Sprint</p>
-                  <p className="text-xs text-slate-400">Implement calculations and API routing</p>
-                </div>
-              </div>
-            </div>
-            
-            <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider pt-2">Weekly Target</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Study Goal: **{profile?.daily_study_hours || '2'} hours / day** · Target completion is set for **{profile?.target_completion_date || 'N/A'}**.
-            </p>
-          </div>
-
-          <div className="premium-card p-6 space-y-4">
-            <h2 className="text-[22px] font-bold text-slate-950 dark:text-white">Recent Activity</h2>
+          {/* Goals and Targets */}
+          <div className="bg-[#111827]/40 border border-white/5 p-6 rounded-3xl backdrop-blur-xl space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
-              <div className="flex gap-3 text-sm">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500/10 text-emerald-500 font-bold">✓</span>
-                <div>
-                  <p className="font-semibold text-slate-800 dark:text-slate-100">Generated Path: {path.topic}</p>
-                  <p className="text-xs text-slate-400">Just now</p>
-                </div>
-              </div>
-              <div className="flex gap-3 text-sm">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500/10 text-emerald-500 font-bold">✓</span>
-                <div>
-                  <p className="font-semibold text-slate-800 dark:text-slate-100">Profile Setup Completed</p>
-                  <p className="text-xs text-slate-400">Just now</p>
-                </div>
+              <h2 className="text-base font-bold text-white">Today's Goal</h2>
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs leading-relaxed font-semibold">
+                Study concepts in "{currentModule.title}" and complete Lesson 1.
               </div>
             </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target Hours</h3>
+              <p className="text-xs text-slate-300">
+                Daily pace is set to **{profile?.daily_study_hours || '2'} hours**.
+              </p>
+            </div>
           </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {dynamicStats.map((stat, index) => <Metric key={stat.label} {...stat} delay={index * 0.04} />)}
         </div>
       </div>
     </PageTransition>
@@ -1107,108 +1099,93 @@ function GenerateCoursePage() {
     "Build Production APIs with FastAPI & PostgreSQL"
   ];
 
+  const popularPaths = [
+    { title: "Full Stack Engineer", tech: "React, Node, SQL" },
+    { title: "AI & ML Specialist", tech: "Python, PyTorch" },
+    { title: "Cloud Architect", tech: "AWS, Kubernetes" },
+    { title: "Backend Developer", tech: "Go, PostgreSQL" }
+  ];
+
   return (
     <PageTransition>
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Left Workspace Panel */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-              <Sparkles size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider">AI Workspace</p>
-              <h1 className="text-2xl font-extrabold text-white">Create a Custom Learning Journey</h1>
-            </div>
+      <div className="max-w-4xl mx-auto py-8 text-center space-y-12">
+        {/* Header */}
+        <div className="space-y-4">
+          <div className="inline-flex h-12 w-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 items-center justify-center animate-pulse">
+            <Sparkles size={24} />
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative group rounded-3xl border border-white/5 bg-[#111827]/60 p-6 backdrop-blur-2xl shadow-glow transition focus-within:border-indigo-500/30">
-              <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400 block mb-3">Goal Specification</span>
-              <textarea 
-                value={promptText}
-                onChange={(e) => setPromptText(e.target.value)}
-                required 
-                placeholder="What would you like to master today?" 
-                className="w-full bg-transparent text-xl font-medium outline-none text-white placeholder:text-slate-500 resize-none h-32"
-              />
-              <div className="absolute right-4 bottom-4 text-xs text-slate-500">Press Enter to generate</div>
-            </div>
-
-            {/* Suggested Prompts */}
-            <div className="space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Suggested Prompts</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {suggestions.map((sug) => (
-                  <button 
-                    key={sug}
-                    type="button"
-                    onClick={() => setPromptText(sug)}
-                    className="text-left p-3 rounded-2xl bg-[#111827] border border-white/5 text-sm hover:bg-white/10 hover:border-indigo-500/20 transition text-slate-300"
-                  >
-                    {sug}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button type="submit" className="btn-primary w-full py-4 text-base font-bold shadow-glow flex items-center justify-center gap-2">
-              Build Roadmap <ArrowRight size={18} />
-            </button>
-          </form>
+          <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+            What do you want to master today?
+          </h1>
+          <p className="text-slate-400 text-sm max-w-lg mx-auto leading-relaxed">
+            Specify any language, framework, or professional target role. Our AI agents will structure a complete educational roadmap.
+          </p>
         </div>
 
-        {/* Right Info Panel */}
-        <div className="space-y-6">
-          <div className="premium-card p-6 space-y-4">
-            <h2 className="text-lg font-bold text-white">Generation Constraints</h2>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Our agent swarm builds customized paths adhering to your profile settings. Ensure your profile parameters match your desired path scope:
-            </p>
-
-            <div className="space-y-3 pt-2">
-              <div className="flex justify-between text-xs py-2 border-b border-white/5">
-                <span className="text-slate-400">Skill Level:</span>
-                <span className="font-bold text-white">{profile?.current_skill_level || 'Beginner'}</span>
-              </div>
-              <div className="flex justify-between text-xs py-2 border-b border-white/5">
-                <span className="text-slate-400">Languages Known:</span>
-                <span className="font-bold text-white">{profile?.languages_known || 'Python, JavaScript'}</span>
-              </div>
-              <div className="flex justify-between text-xs py-2 border-b border-white/5">
-                <span className="text-slate-400">Daily Study Hours:</span>
-                <span className="font-bold text-white">{profile?.daily_study_hours || '2'} hours</span>
-              </div>
-              <div className="flex justify-between text-xs py-2 border-b border-white/5">
-                <span className="text-slate-400">Learning Style:</span>
-                <span className="font-bold text-white">{profile?.learning_style || 'Project-based'}</span>
-              </div>
+        {/* Search Bar / Input Area */}
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+          <div className="relative group rounded-3xl border border-white/5 bg-[#111827]/60 p-6 backdrop-blur-2xl shadow-glow transition focus-within:border-indigo-500/30 text-left">
+            <textarea 
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              required 
+              placeholder="e.g. Become a Senior Python Developer with Microservices focus" 
+              className="w-full bg-transparent text-lg font-medium outline-none text-white placeholder:text-slate-500 resize-none h-28"
+            />
+            <div className="absolute right-4 bottom-4 flex items-center gap-3">
+              <span className="text-xs text-slate-500 hidden sm:inline">Press Enter to generate</span>
+              <button 
+                type="submit" 
+                className="h-10 w-10 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white flex items-center justify-center shadow-glow transition"
+              >
+                <ArrowRight size={18} />
+              </button>
             </div>
-
-            <Link to="/profile" className="btn-secondary w-full py-2.5 text-xs text-center block mt-4">
-              Update Profile Settings
-            </Link>
           </div>
 
-          <div className="premium-card p-6 space-y-4">
-            <h2 className="text-lg font-bold text-white">Swarm Agents</h2>
-            <div className="space-y-3">
-              {[
-                { title: 'Curriculum Swarm', desc: 'Designs modules timeline & objectives.' },
-                { title: 'Explanatory Swarm', desc: 'Crafts rich notes & theory analogy.' },
-                { title: 'Assessment Swarm', desc: 'Builds module-specific quizzes.' },
-                { title: 'Projects Swarm', desc: 'Scopes labs, portfolio, & capstone projects.' }
-              ].map((item, index) => (
-                <div key={item.title} className="flex gap-3 text-xs leading-relaxed">
-                  <span className="grid h-6 w-6 place-items-center rounded-lg bg-indigo-500/10 text-indigo-400 font-bold shrink-0">{index + 1}</span>
-                  <div>
-                    <p className="font-bold text-white">{item.title}</p>
-                    <p className="text-slate-400">{item.desc}</p>
-                  </div>
-                </div>
+          {/* Quick suggestions */}
+          <div className="space-y-3 text-left">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Or choose a recommendation</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {suggestions.map((sug) => (
+                <button 
+                  key={sug}
+                  type="button"
+                  onClick={() => setPromptText(sug)}
+                  className="text-left p-3.5 rounded-2xl bg-white/5 border border-white/5 text-xs hover:bg-white/10 hover:border-indigo-500/20 transition text-slate-300 font-medium"
+                >
+                  {sug}
+                </button>
               ))}
             </div>
           </div>
+        </form>
+
+        {/* Popular paths */}
+        <div className="border-t border-white/5 pt-8 max-w-3xl mx-auto text-left space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Popular Career Tracks</h3>
+          <div className="grid gap-4 sm:grid-cols-4">
+            {popularPaths.map((p) => (
+              <button 
+                key={p.title}
+                type="button"
+                onClick={() => setPromptText(`Master ${p.title} roadmap using ${p.tech}`)}
+                className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-indigo-500/20 transition text-left space-y-1.5"
+              >
+                <h4 className="font-bold text-white text-xs leading-normal">{p.title}</h4>
+                <p className="text-[10px] text-slate-400 leading-normal">{p.tech}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Active constraints pill indicator */}
+        <div className="flex flex-wrap items-center justify-center gap-3 max-w-xl mx-auto pt-4 text-xs text-slate-400 bg-white/5 border border-white/5 p-4 rounded-2xl">
+          <span>Daily study hours: <strong className="text-white">{profile?.daily_study_hours || '2'} hrs</strong></span>
+          <span>•</span>
+          <span>Target Level: <strong className="text-white">{profile?.current_skill_level || 'Beginner'}</strong></span>
+          <span>•</span>
+          <span>Languages: <strong className="text-white">{profile?.languages_known || 'Python, JavaScript'}</strong></span>
         </div>
       </div>
     </PageTransition>
