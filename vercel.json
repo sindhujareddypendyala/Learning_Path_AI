@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:match*",
-      "destination": "https://sindhujareddyp-learning-path-ai.hf.space/api/:match*"
+      "destination": "https://learning-path-ai-p1yi.onrender.com/api/:match*"
     }
   ]
 }
