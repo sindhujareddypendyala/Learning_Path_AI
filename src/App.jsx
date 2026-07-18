@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import {
   ArrowLeft,
   ArrowRight,
@@ -1841,6 +1842,7 @@ function LessonPage() {
 }
 
 function QuizPage() {
+  const navigate = useNavigate();
   const [path, setPath] = useState(null);
   const [moduleIndex, setModuleIndex] = useState(0);
   const [qIndex, setQIndex] = useState(0);
@@ -1856,8 +1858,8 @@ function QuizPage() {
   }, []);
 
   if (!path) return null;
-  const module = path.modules[moduleIndex];
-  const quiz = module.quiz || [
+  const module = path.modules[moduleIndex] || path.modules[0] || {};
+  const fallbackQuiz = [
     {
       question: "What creates a strong AI learning loop?",
       options: ["A landing page", "A learner state, a generated plan, practice, and adaptation.", "Static videos", "Static curriculum"],
@@ -1865,14 +1867,20 @@ function QuizPage() {
       explanation: "Loop relies on state analysis."
     }
   ];
+  const generatedQuiz = Array.isArray(module.quiz) ? module.quiz : module.quiz?.questions;
+  const quiz = Array.isArray(generatedQuiz) && generatedQuiz.length
+    ? generatedQuiz.filter((question) => Array.isArray(question.options) && question.options.length > 0)
+    : fallbackQuiz;
+  const safeQuiz = quiz.length ? quiz : fallbackQuiz;
 
-  const currentQuestion = quiz[qIndex];
+  const currentQuestion = safeQuiz[qIndex] || safeQuiz[0];
+  const correctAnswer = currentQuestion.answer ?? currentQuestion.correct_answer ?? currentQuestion.correctOption ?? '';
 
   function handleSelect(option) {
     if (showExplanation) return;
     setSelected(option);
     setShowExplanation(true);
-    if (option === currentQuestion.answer) {
+    if (option === correctAnswer) {
       setCorrectCount(prev => prev + 1);
     }
   }
@@ -1880,13 +1888,21 @@ function QuizPage() {
   function handleNext() {
     setSelected('');
     setShowExplanation(false);
-    if (qIndex < quiz.length - 1) {
+    if (qIndex < safeQuiz.length - 1) {
       setQIndex(qIndex + 1);
     } else {
-      const finalScore = Math.round((correctCount / quiz.length) * 100);
+      const finalScore = Math.round((correctCount / safeQuiz.length) * 100);
       setScore(finalScore);
       if (finalScore >= 80) confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } });
     }
+  }
+
+  function restartQuiz() {
+    setQIndex(0);
+    setSelected('');
+    setShowExplanation(false);
+    setCorrectCount(0);
+    setScore(null);
   }
 
   return (
@@ -1905,9 +1921,9 @@ function QuizPage() {
         {score === null ? (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Question {qIndex + 1} of {quiz.length}</span>
+              <span className="text-xs font-bold text-slate-400">Question {qIndex + 1} of {safeQuiz.length}</span>
               <div className="h-1.5 w-32 overflow-hidden rounded-full bg-white/5">
-                <div style={{ width: `${((qIndex + 1) / quiz.length) * 100}%` }} className="h-full bg-indigo-500" />
+                <div style={{ width: `${((qIndex + 1) / safeQuiz.length) * 100}%` }} className="h-full bg-indigo-500" />
               </div>
             </div>
             
@@ -1916,7 +1932,7 @@ function QuizPage() {
             <div className="mt-6 space-y-3">
               {currentQuestion.options.map((option) => {
                 const isSelected = selected === option;
-                const isCorrect = option === currentQuestion.answer;
+                const isCorrect = option === correctAnswer;
                 const buttonStyle = showExplanation
                   ? isCorrect
                     ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-400'
@@ -1951,7 +1967,7 @@ function QuizPage() {
                 </div>
                 <p className="text-slate-300 leading-relaxed">{currentQuestion.explanation}</p>
                 <button onClick={handleNext} className="btn-primary py-2 px-4 font-bold text-xs">
-                  {qIndex < quiz.length - 1 ? 'Next Question' : 'Complete Quiz'}
+                  {qIndex < safeQuiz.length - 1 ? 'Next Question' : 'Complete Quiz'}
                 </button>
               </motion.div>
             )}
@@ -1966,6 +1982,9 @@ function QuizPage() {
             <div className="text-3xl font-black text-indigo-400 pt-2">{score}%</div>
             <button onClick={() => navigate('/course')} className="btn-primary py-2.5 px-6 text-xs font-bold shadow-glow mt-4">
               Return to Curriculum
+            </button>
+            <button onClick={restartQuiz} className="btn-secondary py-2.5 px-6 text-xs font-bold mt-4 ml-2">
+              Try Again
             </button>
           </motion.div>
         )}
